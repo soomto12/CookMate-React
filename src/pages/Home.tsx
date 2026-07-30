@@ -1,5 +1,8 @@
 import { useState } from 'react'
+import type { ChangeEvent, FormEvent, KeyboardEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import type { CookMateUser, Recipe } from '../types'
+import { getErrorMessage } from '../types'
 import './Home.css'
 
 const API_BASE = 'http://localhost:3000/api/recipes'
@@ -41,7 +44,7 @@ const SUGGESTIONS = [
 ]
 
 const TIPS = [
-  "Add a pinch of smoked paprika to your pantry for instant gourmet depth in any stew.",
+  'Add a pinch of smoked paprika to your pantry for instant gourmet depth in any stew.',
   'A squeeze of lime juice at the end brightens almost any savory dish.',
   'Toast your spices in dry, hot oil for 30 seconds before adding liquids to wake up their flavor.',
 ]
@@ -50,21 +53,23 @@ function Home() {
   const navigate = useNavigate()
   const [dish, setDish] = useState('')
   const [ingredientInput, setIngredientInput] = useState('')
-  const [ingredients, setIngredients] = useState([])
+  const [ingredients, setIngredients] = useState<string[]>([])
   const [addingIngredient, setAddingIngredient] = useState(false)
   const [excludeAllergens, setExcludeAllergens] = useState(false)
   const [quickMeals, setQuickMeals] = useState(false)
-  const [checkedIngredients, setCheckedIngredients] = useState([])
+  const [checkedIngredients, setCheckedIngredients] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [recipe, setRecipe] = useState(null)
+  const [recipe, setRecipe] = useState<Recipe | null>(null)
 
   const [highlight] = useState(
     () => HIGHLIGHTS[Math.floor(Math.random() * HIGHLIGHTS.length)],
   )
   const [tip] = useState(() => TIPS[Math.floor(Math.random() * TIPS.length)])
 
-  const user = JSON.parse(localStorage.getItem('cookmate_user') || 'null')
+  const user = JSON.parse(
+    localStorage.getItem('cookmate_user') || 'null',
+  ) as CookMateUser | null
   const initial = user?.name?.trim()?.[0]?.toUpperCase() || '?'
 
   const addIngredient = () => {
@@ -75,7 +80,7 @@ function Home() {
     setIngredientInput('')
   }
 
-  const handleIngredientKeyDown = (e) => {
+  const handleIngredientKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Enter' || e.key === ',') {
       e.preventDefault()
       addIngredient()
@@ -88,11 +93,11 @@ function Home() {
     }
   }
 
-  const removeIngredient = (value) => {
+  const removeIngredient = (value: string) => {
     setIngredients((list) => list.filter((item) => item !== value))
   }
 
-  const toggleChecked = (id) => {
+  const toggleChecked = (id: string) => {
     setCheckedIngredients((list) =>
       list.includes(id) ? list.filter((item) => item !== id) : [...list, id],
     )
@@ -104,11 +109,11 @@ function Home() {
     navigate('/login')
   }
 
-  const applySuggestion = (title) => {
+  const applySuggestion = (title: string) => {
     setDish(title)
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e?: FormEvent<HTMLFormElement>) => {
     e?.preventDefault()
     if (!dish.trim()) {
       setError('Tell CookMate what you want to cook first.')
@@ -147,10 +152,11 @@ function Home() {
 
       setRecipe(data.recipe || data)
     } catch (err) {
+      const message = getErrorMessage(err)
       setError(
-        err.message === 'Failed to fetch'
+        message === 'Failed to fetch'
           ? 'Could not reach the server. Is it running on localhost:3000?'
-          : err.message,
+          : message,
       )
     } finally {
       setLoading(false)
@@ -190,8 +196,8 @@ function Home() {
             type="text"
             placeholder="Search for recipes, cuisines, or diets..."
             value={dish}
-            onChange={(e) => setDish(e.target.value)}
-            onKeyDown={(e) => {
+            onChange={(e: ChangeEvent<HTMLInputElement>) => setDish(e.target.value)}
+            onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
               if (e.key === 'Enter') {
                 e.preventDefault()
                 handleSubmit()
@@ -230,7 +236,9 @@ function Home() {
                     placeholder="Ingredient"
                     autoFocus
                     value={ingredientInput}
-                    onChange={(e) => setIngredientInput(e.target.value)}
+                    onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                      setIngredientInput(e.target.value)
+                    }
                     onKeyDown={handleIngredientKeyDown}
                     onBlur={handleIngredientBlur}
                   />
@@ -251,7 +259,9 @@ function Home() {
                 <input
                   type="checkbox"
                   checked={excludeAllergens}
-                  onChange={(e) => setExcludeAllergens(e.target.checked)}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    setExcludeAllergens(e.target.checked)
+                  }
                 />
                 <span>Exclude common allergens</span>
               </label>
@@ -260,7 +270,9 @@ function Home() {
                 <input
                   type="checkbox"
                   checked={quickMeals}
-                  onChange={(e) => setQuickMeals(e.target.checked)}
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    setQuickMeals(e.target.checked)
+                  }
                 />
                 <span>Quick meals (under 30 mins)</span>
               </label>
@@ -377,20 +389,18 @@ function Home() {
                     .map((step, i) => (
                       <li key={step.id ?? i}>
                         <span className="step-number">{step.order ?? i + 1}</span>
-                        <span className="step-text">
-                          {typeof step === 'string' ? step : step.instruction}
-                        </span>
+                        <span className="step-text">{step.instruction}</span>
                       </li>
                     ))}
                 </ol>
               </div>
             )}
 
-            {recipe.shoppingLists?.[0]?.items?.length > 0 && (
+            {(recipe.shoppingLists?.[0]?.items?.length ?? 0) > 0 && (
               <div className="recipe-section">
                 <h3>Shopping list (missing ingredients)</h3>
                 <ul className="recipe-ingredients-plain">
-                  {recipe.shoppingLists[0].items.map((item) => (
+                  {recipe.shoppingLists?.[0].items.map((item) => (
                     <li key={item.id ?? item.name}>
                       {[item.quantity, item.unit, item.name].filter(Boolean).join(' ')}
                     </li>

@@ -1,27 +1,37 @@
 import { useState } from 'react'
+import type { ChangeEvent, FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { getErrorMessage } from '../types'
 import './Login.css'
 
 const API_BASE = 'http://localhost:3000/api/auth'
 
+type AuthMode = 'login' | 'signup'
+
+interface AuthForm {
+  name: string
+  email: string
+  password: string
+}
+
 function Login() {
   const navigate = useNavigate()
-  const [mode, setMode] = useState('login') // 'login' | 'signup'
-  const [form, setForm] = useState({ name: '', email: '', password: '' })
+  const [mode, setMode] = useState<AuthMode>('login')
+  const [form, setForm] = useState<AuthForm>({ name: '', email: '', password: '' })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setError('')
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
   }
 
-  const switchMode = (next) => {
+  const switchMode = (next: AuthMode) => {
     setError('')
     setMode(next)
   }
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     setError('')
@@ -59,10 +69,11 @@ function Login() {
       // Success — send the user into the app.
       navigate('/app')
     } catch (err) {
+      const message = getErrorMessage(err)
       setError(
-        err.message === 'Failed to fetch'
+        message === 'Failed to fetch'
           ? 'Could not reach the server. Is it running on localhost:3000?'
-          : err.message,
+          : message,
       )
     } finally {
       setLoading(false)

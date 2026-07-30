@@ -1,21 +1,25 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import type { CookMateUser, Recipe, RecipeIngredient, ShoppingListItem } from '../types'
+import { getErrorMessage } from '../types'
 import './Dashboard.css'
 
 const API_BASE = 'http://localhost:3000/api/recipes'
 
-function formatIngredient(ing) {
+function formatIngredient(ing: RecipeIngredient | ShoppingListItem) {
   return [ing.quantity, ing.unit, ing.name].filter(Boolean).join(' ')
 }
 
 function Dashboard() {
   const navigate = useNavigate()
-  const [recipes, setRecipes] = useState([])
+  const [recipes, setRecipes] = useState<Recipe[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [expandedId, setExpandedId] = useState(null)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
 
-  const user = JSON.parse(localStorage.getItem('cookmate_user') || 'null')
+  const user = JSON.parse(
+    localStorage.getItem('cookmate_user') || 'null',
+  ) as CookMateUser | null
 
   const handleLogout = () => {
     localStorage.removeItem('cookmate_token')
@@ -45,10 +49,11 @@ function Dashboard() {
 
         setRecipes(data.recipes || [])
       } catch (err) {
+        const message = getErrorMessage(err)
         setError(
-          err.message === 'Failed to fetch'
+          message === 'Failed to fetch'
             ? 'Could not reach the server. Is it running on localhost:3000?'
-            : err.message,
+            : message,
         )
       } finally {
         setLoading(false)
@@ -58,7 +63,7 @@ function Dashboard() {
     load()
   }, [])
 
-  const toggleExpanded = (id) => {
+  const toggleExpanded = (id: string) => {
     setExpandedId((current) => (current === id ? null : id))
   }
 
