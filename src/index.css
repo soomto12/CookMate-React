@@ -20,6 +20,8 @@
   body {
     @apply m-0 bg-white text-stone-900 antialiased;
     font-family: var(--font-sans);
+    line-height: 1.7;
+    letter-spacing: 0.01em;
   }
 
   h1,
@@ -28,11 +30,19 @@
   h4 {
     @apply m-0 font-display text-stone-900;
     letter-spacing: -0.02em;
-    line-height: 1.1;
+    line-height: 1.25;
   }
 
   p {
     @apply m-0;
+    line-height: 1.7;
+  }
+
+  h1 + p,
+  h2 + p,
+  h3 + p,
+  h4 + p {
+    @apply mt-3;
   }
 
   a {

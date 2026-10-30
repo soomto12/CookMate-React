@@ -239,71 +239,69 @@ function App() {
           </div>
         </section>
 
-        <section id="why-mealio">
-          <div>
-            <span>Why Mealio?</span>
-            <h2>Better Food Choices. A Healthier You.</h2>
-            <p>
-              Mealio isn&rsquo;t just about recipes — it&rsquo;s about making your life easier,
-              healthier, and more enjoyable.
+        <section id="why-mealio" className="px-4 py-10 font-jakarta sm:px-6 md:px-8">
+          <div className="relative mx-auto flex max-w-6xl flex-col gap-10 overflow-hidden rounded-3xl bg-gradient-to-br from-green-950 via-green-900 to-emerald-800 px-6 py-12 text-white shadow-xl sm:px-10 md:flex-row md:items-center md:justify-between md:py-14">
+            <div className="relative z-10 flex flex-col items-start md:max-w-md">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold ring-1 ring-white/20">
+                <span aria-hidden="true">✦</span>
+                Why Mealio?
+              </span>
+              <h2 className="mt-4 font-jakarta text-3xl font-extrabold leading-tight tracking-tight text-white md:text-4xl">
+                Better Food Choices. A Healthier You.
+              </h2>
+              <p className="mt-4 text-base leading-7 text-emerald-50/85">
+                Mealio isn&rsquo;t just about recipes — it&rsquo;s about making your life easier,
+                healthier, and more enjoyable.
+              </p>
+              <ul className="mt-6 grid gap-x-8 gap-y-3 text-sm font-semibold sm:grid-cols-2">
+                {[
+                  'Save time on meal planning',
+                  'Eat healthier and balanced meals',
+                  'Reduce food waste',
+                  'Discover new recipes',
+                ].map((benefit) => (
+                  <li key={benefit} className="flex items-center gap-3">
+                    <span
+                      aria-hidden="true"
+                      className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500 text-[10px] text-white"
+                    >
+                      ✓
+                    </span>
+                    {benefit}
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <p className="relative z-10 -rotate-6 font-display text-4xl font-semibold italic leading-tight text-white/95 md:text-5xl">
+              Good food,
+              <br />
+              Good mood
             </p>
-            <ul>
-              <li>✔ Save time on meal planning</li>
-              <li>✔ Eat healthier and balanced meals</li>
-              <li>✔ Reduce food waste</li>
-              <li>✔ Discover new recipes</li>
-            </ul>
-          </div>
 
-          <div>
-            <p>Good food, Good mood</p>
-            <img src="" alt="Grilled chicken with roasted vegetables and rice" />
+            <div aria-hidden="true" className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-emerald-400/10" />
+            <div aria-hidden="true" className="pointer-events-none absolute -bottom-20 right-24 h-56 w-56 rounded-full bg-emerald-300/10" />
           </div>
         </section>
 
-        <section id="testimonials">
-          <span>Loved by Foodies Everywhere</span>
-          <h2>What Our Users Say</h2>
-          <p>Join thousands of people who are already cooking smarter with Mealio.</p>
-
-          <ul>
-            <li>
-              <img src="" alt="Chinwe A." />
-              <blockquote>
-                &ldquo;Mealio has completely changed the way I cook. I never waste food
-                anymore, and the recipes are actually delicious!&rdquo;
-              </blockquote>
-              <p>Chinwe A.</p>
-              <p>Student</p>
-              <p aria-label="5 out of 5 stars">★★★★★</p>
-            </li>
-            <li>
-              <img src="" alt="Daniel K." />
-              <blockquote>
-                &ldquo;The AI recipe generator is amazing! I just enter what I have in my
-                fridge and get great meal ideas. Super easy to use.&rdquo;
-              </blockquote>
-              <p>Daniel K.</p>
-              <p>Software Developer</p>
-              <p aria-label="5 out of 5 stars">★★★★★</p>
-            </li>
-            <li>
-              <img src="" alt="Ada E." />
-              <blockquote>
-                &ldquo;I love the shopping list feature. It saves me so much time and helps
-                me stay organized. Highly recommend!&rdquo;
-              </blockquote>
-              <p>Ada E.</p>
-              <p>Business Owner</p>
-              <p aria-label="5 out of 5 stars">★★★★★</p>
-            </li>
-          </ul>
-        </section>
-
-        <section id="cta">
-          <h2>Ready to Cook Smarter?</h2>
-          <p>Join Mealio today and turn your ingredients into amazing meals!</p>
-          <button type="button" onClick={() => navigate('/login')}>Get Started Free →</button>
+        <section id="cta" className="relative overflow-hidden bg-green-950 px-4 py-14 text-center font-jakarta sm:px-6">
+          <div aria-hidden="true" className="pointer-events-none absolute -left-10 -top-10 h-40 w-40 rounded-full bg-emerald-400/10" />
+          <div aria-hidden="true" className="pointer-events-none absolute -bottom-12 -right-8 h-48 w-48 rounded-full bg-emerald-300/10" />
+          <div className="relative mx-auto flex max-w-xl flex-col items-center">
+            <h2 className="font-jakarta text-3xl font-extrabold tracking-tight text-white md:text-4xl">
+              Ready to Cook Smarter?
+            </h2>
+            <p className="mt-3 text-base text-emerald-50/85">
+              Join Mealio today and turn your ingredients into amazing meals!
+            </p>
+            <button
+              type="button"
+              onClick={() => navigate('/login')}
+              className="mt-7 rounded-full bg-white px-7 py-3 text-sm font-bold text-green-900 shadow-lg transition hover:bg-emerald-50"
+            >
+              Get Started Free →
+            </button>
+          </div>
         </section>
       </main>
     </>

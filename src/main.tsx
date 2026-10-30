@@ -7,6 +7,7 @@ import Login from './pages/Login.tsx'
 import Home from './pages/Home.tsx'
 import Dashboard from './pages/Dashboard.tsx'
 import Allergens from './pages/Allergens.tsx'
+import Generate from './pages/Generate.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -17,6 +18,7 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/app" element={<Home />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/allergens" element={<Allergens />} />
+        <Route path="/generate" element={<Generate />} />
       </Routes>
     </BrowserRouter>
   </StrictMode>,
