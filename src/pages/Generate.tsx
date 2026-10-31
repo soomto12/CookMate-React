@@ -1,90 +1,20 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import logo from '../assets/Mealio Green Fork Logo.png'
+import Icon from '../components/Icon'
+import Toggle from '../components/Toggle'
 import { getErrorMessage } from '../types'
-
-const ALLERGENS_URL = 'http://localhost:3000/api/allergens'
-
-const icons = {
-  home: 'M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6',
-  sparkles:
-    'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z',
-  recipes: 'M6 3h12a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V5a2 2 0 012-2zM12 8v8M9 11h6',
-  cart: 'M3 4h2l2.4 10.4a1 1 0 001 .6h8.2a1 1 0 001-.8L19 8H6M9 20h.01M17 20h.01',
-  user: 'M12 12a4 4 0 100-8 4 4 0 000 8zM4 21c0-4 3.6-6 8-6s8 2 8 6',
-  bag: 'M6 8h12l1 12H5L6 8zM9 8a3 3 0 016 0M10 13c.5 1 1 1.5 2 1.5s1.5-.5 2-1.5',
-  bolt: 'M13 2L4 14h7l-1 8 9-12h-7l1-8z',
-  shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3zM8.5 12l2.5 2.5 4.5-5',
-  pot: 'M4 11h16v6a3 3 0 01-3 3H7a3 3 0 01-3-3v-6zM2 11h20M8 7c0-1 1-1 1-2s-1-1-1-2M13 7c0-1 1-1 1-2s-1-1-1-2',
-}
-
-const navItems = [
-  { href: '/app', label: 'Home', icon: icons.home },
-  { href: '/generate', label: 'Generate Recipe', icon: icons.sparkles },
-  { href: '/recipes', label: 'My Recipes', icon: icons.recipes },
-  { href: '/shopping-list', label: 'Shopping List', icon: icons.cart },
-  { href: '/profile', label: 'Profile', icon: icons.user },
-]
-
-const steps = [
-  'Enter your ingredients or the meal you have in mind.',
-  'Set your preferences (quick meal, allergies, shopping list).',
-  'Click “Generate Recipe” and get delicious meal ideas!',
-]
-
-function Icon({ d, className }: { d: string; className: string }) {
-  return (
-    <svg
-      aria-hidden="true"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d={d} />
-    </svg>
-  )
-}
-
-type ToggleProps = {
-  name: string
-  label: string
-  defaultChecked?: boolean
-  checked?: boolean
-  onChange?: (checked: boolean) => void
-  describedBy?: string
-}
-
-function Toggle({ name, label, defaultChecked, checked, onChange, describedBy }: ToggleProps) {
-  return (
-    <label className="flex w-fit cursor-pointer items-center gap-3 text-sm text-slate-600">
-      <input
-        type="checkbox"
-        role="switch"
-        name={name}
-        defaultChecked={defaultChecked}
-        checked={checked}
-        onChange={onChange && ((e) => onChange(e.target.checked))}
-        aria-describedby={describedBy}
-        className="peer sr-only"
-      />
-      <span
-        aria-hidden="true"
-        className="relative h-6 w-11 shrink-0 rounded-full bg-slate-300 transition peer-checked:bg-green-700 peer-focus-visible:ring-2 peer-focus-visible:ring-green-600 peer-focus-visible:ring-offset-2 after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:bg-white after:shadow after:transition after:content-[''] peer-checked:after:translate-x-5"
-      />
-      {label}
-    </label>
-  )
-}
-
-const fieldsetClass = 'relative min-w-0 pl-11 sm:pl-14'
-const legendClass = 'p-0 text-base font-bold text-green-950'
-const hintClass = 'mt-1 text-sm text-slate-500'
-const sectionIconClass = 'absolute left-0 top-0 h-7 w-7 text-green-700 sm:h-8 sm:w-8'
-const inputClass =
-  'mt-3 w-full rounded-xl border border-emerald-100 bg-white px-4 py-3.5 text-sm text-stone-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-600/20'
+import {
+  ALLERGENS_URL,
+  SUGGEST_URL,
+  fieldsetClass,
+  hintClass,
+  icons,
+  inputClass,
+  legendClass,
+  navItems,
+  sectionIconClass,
+  steps,
+} from '../generateConstants'
 
 function Generate() {
   const current = '/generate'
@@ -93,6 +23,9 @@ function Generate() {
   const [allergens, setAllergens] = useState<string[]>([])
   const [allergensLoading, setAllergensLoading] = useState(true)
   const [allergensError, setAllergensError] = useState('')
+  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [suggestLoading, setSuggestLoading] = useState(false)
+  const [suggestError, setSuggestError] = useState('')
 
   useEffect(() => {
     const controller = new AbortController()
@@ -134,6 +67,65 @@ function Generate() {
     loadAllergens()
     return () => controller.abort()
   }, [])
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!justIngredients) return
+
+    const form = new FormData(e.currentTarget)
+    const ingredients = String(form.get('ingredients') ?? '')
+      .split(',')
+      .map((i) => i.trim())
+      .filter(Boolean)
+
+    if (ingredients.length === 0) {
+      setSuggestError('Enter at least one ingredient.')
+      return
+    }
+
+    setSuggestLoading(true)
+    setSuggestError('')
+    setSuggestions([])
+
+    try {
+      const token = localStorage.getItem('cookmate_token')
+      const res = await fetch(SUGGEST_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({
+          ingredients,
+          quickMeal: form.get('quickMeal') === 'on',
+          allergens: form.get('excludeAllergens') === 'on' ? allergens : [],
+        }),
+      })
+
+      const data: unknown = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        const body = data as { error?: string; message?: string }
+        throw new Error(body.error || body.message || `Request failed (${res.status})`)
+      }
+
+      const list = Array.isArray(data) ? data : (data as { suggestions?: unknown }).suggestions
+      setSuggestions(
+        Array.isArray(list)
+          ? list.map((f) => (typeof f === 'string' ? f : (f as { name: string }).name))
+          : [],
+      )
+    } catch (err) {
+      const message = getErrorMessage(err)
+      setSuggestError(
+        message === 'Failed to fetch'
+          ? 'Could not reach the server. Is it running on localhost:3000?'
+          : message,
+      )
+    } finally {
+      setSuggestLoading(false)
+    }
+  }
 
   return (
     <div className="flex min-h-screen font-jakarta">
@@ -229,7 +221,7 @@ function Generate() {
             </p>
           </section>
 
-          <form className="flex min-w-0 flex-col gap-8 rounded-3xl bg-white p-5 shadow-xl shadow-green-900/5 ring-1 ring-emerald-50 sm:p-8">
+          <form onSubmit={handleSubmit} className="flex min-w-0 flex-col gap-8 rounded-3xl bg-white p-5 shadow-xl shadow-green-900/5 ring-1 ring-emerald-50 sm:p-8">
             {!justIngredients && (
               <fieldset className={fieldsetClass}>
                 <Icon d={icons.pot} className={sectionIconClass} />
@@ -340,12 +332,33 @@ function Generate() {
 
             <button
               type="submit"
-              className="flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-green-800 to-green-700 px-6 py-4 text-base font-bold text-white shadow-lg shadow-green-900/20 transition hover:from-green-900 hover:to-green-800"
+              disabled={suggestLoading}
+              className="flex items-center justify-center gap-3 rounded-xl bg-gradient-to-r from-green-800 to-green-700 px-6 py-4 text-base font-bold text-white shadow-lg shadow-green-900/20 transition hover:from-green-900 hover:to-green-800 disabled:opacity-60"
             >
               <Icon d={icons.sparkles} className="h-5 w-5" />
-              Generate Recipe
+              {suggestLoading ? 'Finding meals...' : 'Generate Recipe'}
               <span aria-hidden="true">&rarr;</span>
             </button>
+
+            {suggestError && (
+              <p role="alert" className="text-sm text-red-700">{suggestError}</p>
+            )}
+
+            {suggestions.length > 0 && (
+              <section aria-label="Suggested meals">
+                <h2 className="text-base font-bold text-green-950">Suggested meals</h2>
+                <ul className="mt-3 flex flex-wrap gap-2">
+                  {suggestions.map((food) => (
+                    <li
+                      key={food}
+                      className="rounded-full bg-green-700 px-3 py-1 text-sm font-medium text-white"
+                    >
+                      {food}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
           </form>
 
           <aside aria-label="Recipe generator help" className="flex flex-col gap-8">

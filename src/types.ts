@@ -42,5 +42,19 @@ export interface Recipe {
   shoppingLists?: ShoppingList[]
 }
 
+export interface IconProps {
+  d: string
+  className: string
+}
+
+export interface ToggleProps {
+  name: string
+  label: string
+  defaultChecked?: boolean
+  checked?: boolean
+  onChange?: (checked: boolean) => void
+  describedBy?: string
+}
+
 export const getErrorMessage = (err: unknown): string =>
   err instanceof Error ? err.message : String(err)
