@@ -1,17 +1,17 @@
 import { useEffect, useState, type FormEvent } from 'react'
-import logo from '../assets/Mealio Green Fork Logo.png'
+import AppSidebar from '../components/AppSidebar'
 import Icon from '../components/Icon'
 import Toggle from '../components/Toggle'
-import { getErrorMessage } from '../types'
+import { useRecipe } from '../context/RecipeContext'
+import { useMeal } from '../context/MealContext'
+import { useIngredients } from '../context/IngredientContext'
+import { useAllergens } from '../context/AllergenContext'
 import {
-  ALLERGENS_URL,
-  SUGGEST_URL,
   fieldsetClass,
   hintClass,
   icons,
   inputClass,
   legendClass,
-  navItems,
   sectionIconClass,
   steps,
 } from '../generateConstants'
@@ -19,173 +19,33 @@ import {
 function Generate() {
   const current = '/generate'
   const [menuOpen, setMenuOpen] = useState(false)
-  const [justIngredients, setJustIngredients] = useState(false)
-  const [allergens, setAllergens] = useState<string[]>([])
-  const [allergensLoading, setAllergensLoading] = useState(true)
-  const [allergensError, setAllergensError] = useState('')
-  const [suggestions, setSuggestions] = useState<string[]>([])
-  const [suggestLoading, setSuggestLoading] = useState(false)
-  const [suggestError, setSuggestError] = useState('')
+  const { meal, setMeal, quickMeal, setQuickMeal } = useMeal()
+  const { ingredients, setIngredients, justIngredients, setJustIngredients } = useIngredients()
+  const {
+    allergens,
+    allergensLoading,
+    allergensError,
+    loadAllergens,
+    excludeAllergens,
+    setExcludeAllergens,
+  } = useAllergens()
+  const { suggestLoading, suggestError, submit } = useRecipe()
 
   useEffect(() => {
     const controller = new AbortController()
-
-    const loadAllergens = async () => {
-      try {
-        const token = localStorage.getItem('cookmate_token')
-        const res = await fetch(ALLERGENS_URL, {
-          signal: controller.signal,
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-        })
-
-        const data: unknown = await res.json().catch(() => ({}))
-
-        if (!res.ok) {
-          const body = data as { error?: string; message?: string }
-          throw new Error(body.error || body.message || `Request failed (${res.status})`)
-        }
-
-        const list = Array.isArray(data) ? data : (data as { allergens?: unknown }).allergens
-        setAllergens(
-          Array.isArray(list)
-            ? list.map((a) => (typeof a === 'string' ? a : (a as { name: string }).name))
-            : [],
-        )
-      } catch (err) {
-        if (controller.signal.aborted) return
-        const message = getErrorMessage(err)
-        setAllergensError(
-          message === 'Failed to fetch'
-            ? 'Could not reach the server. Is it running on localhost:3000?'
-            : message,
-        )
-      } finally {
-        if (!controller.signal.aborted) setAllergensLoading(false)
-      }
-    }
-
-    loadAllergens()
+    loadAllergens(controller.signal)
     return () => controller.abort()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    if (!justIngredients) return
-
-    const form = new FormData(e.currentTarget)
-    const ingredients = String(form.get('ingredients') ?? '')
-      .split(',')
-      .map((i) => i.trim())
-      .filter(Boolean)
-
-    if (ingredients.length === 0) {
-      setSuggestError('Enter at least one ingredient.')
-      return
-    }
-
-    setSuggestLoading(true)
-    setSuggestError('')
-    setSuggestions([])
-
-    try {
-      const token = localStorage.getItem('cookmate_token')
-      const res = await fetch(SUGGEST_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({
-          ingredients,
-          quickMeal: form.get('quickMeal') === 'on',
-          allergens: form.get('excludeAllergens') === 'on' ? allergens : [],
-        }),
-      })
-
-      const data: unknown = await res.json().catch(() => ({}))
-
-      if (!res.ok) {
-        const body = data as { error?: string; message?: string }
-        throw new Error(body.error || body.message || `Request failed (${res.status})`)
-      }
-
-      const list = Array.isArray(data) ? data : (data as { suggestions?: unknown }).suggestions
-      setSuggestions(
-        Array.isArray(list)
-          ? list.map((f) => (typeof f === 'string' ? f : (f as { name: string }).name))
-          : [],
-      )
-    } catch (err) {
-      const message = getErrorMessage(err)
-      setSuggestError(
-        message === 'Failed to fetch'
-          ? 'Could not reach the server. Is it running on localhost:3000?'
-          : message,
-      )
-    } finally {
-      setSuggestLoading(false)
-    }
+    submit()
   }
 
   return (
     <div className="flex min-h-screen font-jakarta">
-      {menuOpen && (
-        <button
-          type="button"
-          aria-label="Close menu"
-          onClick={() => setMenuOpen(false)}
-          className="fixed inset-0 z-30 bg-black/40 lg:hidden"
-        />
-      )}
-
-      <aside
-        id="sidebar"
-        className={`fixed inset-y-0 left-0 z-40 flex w-64 shrink-0 flex-col overflow-y-auto bg-gradient-to-b from-green-900 to-green-950 px-4 py-8 text-white transition-transform duration-200 lg:static lg:translate-x-0 ${
-          menuOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
-      >
-        <a href="/generate" className="mb-10 flex items-center gap-2 px-3 text-3xl font-extrabold">
-          <img src={logo} alt="" className="h-12 w-12 rounded-full bg-white p-0.5" />
-          Mealio
-        </a>
-
-        <nav aria-label="Main navigation">
-          <ul className="flex flex-col gap-2">
-            {navItems.map((item) => (
-              <li key={item.href}>
-                <a
-                  href={item.href}
-                  aria-current={item.href === current ? 'page' : undefined}
-                  className={`flex items-center gap-4 rounded-xl px-4 py-3.5 text-base font-semibold transition ${
-                    item.href === current
-                      ? 'bg-green-700/60 text-white'
-                      : 'text-emerald-50/90 hover:bg-white/10'
-                  }`}
-                >
-                  <Icon d={item.icon} className="h-6 w-6 shrink-0" />
-                  {item.label}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-
-        <div className="mt-auto flex items-center gap-3 rounded-2xl border border-emerald-400/20 bg-white/5 px-5 py-6">
-          <svg
-            aria-hidden="true"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="h-7 w-7 shrink-0 -rotate-12 text-emerald-400"
-          >
-            <path d="M20 3C10 3 4 8.5 4 15c0 1.4.3 2.6.8 3.6C3.6 19.8 3 21 3 21h2c.5-.9 1.4-1.8 2.6-2.6C8.7 19 9.9 19.2 11 19.2 17 19.2 20 12 20 3z" />
-          </svg>
-          <p className="font-display text-lg italic leading-snug text-white/90">
-            Good food
-            <br />
-            Good mood
-          </p>
-        </div>
-      </aside>
+      <AppSidebar current={current} open={menuOpen} onClose={() => setMenuOpen(false)} />
 
       <div className="min-w-0 flex-1 bg-gradient-to-br from-white via-emerald-50/40 to-emerald-50">
         <header className="flex items-center px-4 py-4 sm:px-8 sm:py-6">
@@ -233,6 +93,8 @@ function Generate() {
                   id="meal"
                   name="meal"
                   type="text"
+                  value={meal}
+                  onChange={(e) => setMeal(e.target.value)}
                   placeholder="e.g. jollof rice, chicken curry, pasta..."
                   className={inputClass}
                 />
@@ -249,6 +111,8 @@ function Generate() {
                 id="ingredients"
                 name="ingredients"
                 type="text"
+                value={ingredients}
+                onChange={(e) => setIngredients(e.target.value)}
                 placeholder="e.g. chicken, rice, tomatoes, onions..."
                 className={inputClass}
               />
@@ -279,6 +143,8 @@ function Generate() {
               <Toggle
                 name="quickMeal"
                 label="Yes, I want a quick meal"
+                checked={quickMeal}
+                onChange={setQuickMeal}
                 describedBy="quick-meal-hint"
               />
             </fieldset>
@@ -313,21 +179,13 @@ function Generate() {
                     ))
                   )}
                 </div>
-                <Toggle name="excludeAllergens" label="Exclude allergens" />
+                <Toggle
+                  name="excludeAllergens"
+                  label="Exclude allergens"
+                  checked={excludeAllergens}
+                  onChange={setExcludeAllergens}
+                />
               </div>
-            </fieldset>
-
-            <fieldset className={fieldsetClass}>
-              <Icon d={icons.cart} className={sectionIconClass} />
-              <legend className={legendClass}>Shopping list</legend>
-              <p id="shopping-list-hint" className={`${hintClass} mb-3`}>
-                Include a shopping list with the recipe.
-              </p>
-              <Toggle
-                name="includeShoppingList"
-                label="Include shopping list"
-                describedBy="shopping-list-hint"
-              />
             </fieldset>
 
             <button
@@ -342,22 +200,6 @@ function Generate() {
 
             {suggestError && (
               <p role="alert" className="text-sm text-red-700">{suggestError}</p>
-            )}
-
-            {suggestions.length > 0 && (
-              <section aria-label="Suggested meals">
-                <h2 className="text-base font-bold text-green-950">Suggested meals</h2>
-                <ul className="mt-3 flex flex-wrap gap-2">
-                  {suggestions.map((food) => (
-                    <li
-                      key={food}
-                      className="rounded-full bg-green-700 px-3 py-1 text-sm font-medium text-white"
-                    >
-                      {food}
-                    </li>
-                  ))}
-                </ul>
-              </section>
             )}
           </form>
 

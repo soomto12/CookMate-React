@@ -1,5 +1,5 @@
 export const ALLERGENS_URL = 'http://localhost:3000/api/allergens'
-export const SUGGEST_URL = 'http://localhost:3000/api/suggest'
+export const API_URL = 'http://localhost:3000/api'
 
 export const icons = {
   home: 'M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6',
@@ -24,7 +24,7 @@ export const navItems = [
 
 export const steps = [
   'Enter your ingredients or the meal you have in mind.',
-  'Set your preferences (quick meal, allergies, shopping list).',
+  'Set your preferences (quick meal, allergies).',
   'Click “Generate Recipe” and get delicious meal ideas!',
 ]
 

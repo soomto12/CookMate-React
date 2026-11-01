@@ -37,6 +37,9 @@ export interface Recipe {
   servings?: number | null
   cookTimeMinutes?: number | null
   difficulty?: 'EASY' | 'MEDIUM' | 'HARD' | null
+  imageUrl?: string | null
+  imageCredit?: string | null
+  imageCreditUrl?: string | null
   ingredients: RecipeIngredient[]
   steps: RecipeStep[]
   shoppingLists?: ShoppingList[]
