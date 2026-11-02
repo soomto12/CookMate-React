@@ -10,16 +10,10 @@ import Allergens from './pages/Allergens.tsx'
 import Generate from './pages/Generate.tsx'
 import Recipes from './pages/Recipes.tsx'
 import { RecipeProvider } from './context/RecipeContext.tsx'
-import { MealProvider } from './context/MealContext.tsx'
-import { IngredientProvider } from './context/IngredientContext.tsx'
-import { AllergenProvider } from './context/AllergenContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <MealProvider>
-      <IngredientProvider>
-      <AllergenProvider>
       <RecipeProvider>
       <Routes>
         <Route path="/" element={<App />} />
@@ -31,9 +25,6 @@ createRoot(document.getElementById('root')!).render(
         <Route path="/recipes" element={<Recipes />} />
       </Routes>
       </RecipeProvider>
-      </AllergenProvider>
-      </IngredientProvider>
-      </MealProvider>
     </BrowserRouter>
   </StrictMode>,
 )

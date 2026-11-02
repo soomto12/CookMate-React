@@ -1,9 +1,5 @@
 import { Link, useNavigate } from 'react-router-dom'
-import type { CookMateUser } from '../types'
-
-interface SiteHeaderProps {
-  active: 'home' | 'history'
-}
+import type { CookMateUser, SiteHeaderProps } from '../types'
 
 function SiteHeader({ active }: SiteHeaderProps) {
   const navigate = useNavigate()

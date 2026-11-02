@@ -1,11 +1,10 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
 import AppSidebar from '../components/AppSidebar'
 import Icon from '../components/Icon'
 import Toggle from '../components/Toggle'
 import { useRecipe } from '../context/RecipeContext'
-import { useMeal } from '../context/MealContext'
-import { useIngredients } from '../context/IngredientContext'
-import { useAllergens } from '../context/AllergenContext'
+import { useAllergens } from '../hooks/useAllergens'
 import {
   fieldsetClass,
   hintClass,
@@ -19,28 +18,26 @@ import {
 function Generate() {
   const current = '/generate'
   const [menuOpen, setMenuOpen] = useState(false)
-  const { meal, setMeal, quickMeal, setQuickMeal } = useMeal()
-  const { ingredients, setIngredients, justIngredients, setJustIngredients } = useIngredients()
-  const {
-    allergens,
-    allergensLoading,
-    allergensError,
-    loadAllergens,
-    excludeAllergens,
-    setExcludeAllergens,
-  } = useAllergens()
+  const navigate = useNavigate()
+  const [meal, setMeal] = useState('')
+  const [quickMeal, setQuickMeal] = useState(false)
+  const [ingredients, setIngredients] = useState('')
+  const [justIngredients, setJustIngredients] = useState(false)
+  const [excludeAllergens, setExcludeAllergens] = useState(false)
+  const { allergens, loading: allergensLoading, error: allergensError } = useAllergens()
   const { suggestLoading, suggestError, submit } = useRecipe()
 
-  useEffect(() => {
-    const controller = new AbortController()
-    loadAllergens(controller.signal)
-    return () => controller.abort()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    submit()
+    const ok = await submit({
+      meal,
+      ingredients,
+      justIngredients,
+      quickMeal,
+      allergens,
+      excludeAllergens,
+    })
+    if (ok) navigate('/recipes')
   }
 
   return (

@@ -1,12 +1,7 @@
 import logo from '../assets/Mealio Green Fork Logo.png'
 import Icon from './Icon'
+import type { AppSidebarProps } from '../types'
 import { navItems } from '../generateConstants'
-
-type AppSidebarProps = {
-  current: string
-  open: boolean
-  onClose: () => void
-}
 
 function AppSidebar({ current, open, onClose }: AppSidebarProps) {
   return (

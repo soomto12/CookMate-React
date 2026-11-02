@@ -1,18 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import FormComponent from '../components/FormComponent'
-import type { FormMode, FormValues } from '../components/FormComponent'
-import type { CookMateUser } from '../types'
+import type { AuthResponse, FormMode, FormValues } from '../types'
 import { getErrorMessage } from '../types'
 
 const API_BASE = 'http://localhost:3000/api/auth'
-
-interface AuthResponse {
-  token?: string
-  user?: CookMateUser
-  error?: string
-  message?: string
-}
 
 function Login() {
   const navigate = useNavigate()

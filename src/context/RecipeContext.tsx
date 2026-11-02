@@ -1,35 +1,20 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { API_URL } from '../generateConstants'
-import { useAllergens } from './AllergenContext'
-import { useIngredients } from './IngredientContext'
-import { useMeal } from './MealContext'
-import { getErrorMessage, type Recipe } from '../types'
-
-interface RecipeContextValue {
-  // generate request
-  suggestLoading: boolean
-  suggestError: string
-  submit: () => Promise<void>
-
-  // results
-  recipe: Recipe | null
-  suggestions: string[]
-  clear: () => void
-}
-
-interface Saved {
-  recipe: Recipe | null
-  suggestions: string[]
-}
+import {
+  getErrorMessage,
+  type GenerateInput,
+  type Recipe,
+  type RecipeContextValue,
+  type SavedRecipeState,
+} from '../types'
 
 const STORAGE_KEY = 'cookmate_recipe'
 
-const loadSaved = (): Saved => {
+const loadSaved = (): SavedRecipeState => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
     if (raw) {
-      const saved = JSON.parse(raw) as Partial<Saved>
+      const saved = JSON.parse(raw) as Partial<SavedRecipeState>
       return { recipe: saved.recipe ?? null, suggestions: saved.suggestions ?? [] }
     }
   } catch {
@@ -48,12 +33,6 @@ const friendlyError = (err: unknown): string => {
 const RecipeContext = createContext<RecipeContextValue | null>(null)
 
 export function RecipeProvider({ children }: { children: ReactNode }) {
-  const navigate = useNavigate()
-
-  const { quickMeal } = useMeal()
-  const { ingredients, justIngredients } = useIngredients()
-  const { allergens, excludeAllergens } = useAllergens()
-
   const [suggestLoading, setSuggestLoading] = useState(false)
   const [suggestError, setSuggestError] = useState('')
 
@@ -68,7 +47,14 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
     }
   }, [recipe, suggestions])
 
-  const submit = async () => {
+  const submit = async ({
+    meal,
+    ingredients,
+    justIngredients,
+    quickMeal,
+    allergens,
+    excludeAllergens,
+  }: GenerateInput): Promise<boolean> => {
     const list = ingredients
       .split(',')
       .map((i) => i.trim())
@@ -76,7 +62,7 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
 
     if (list.length === 0) {
       setSuggestError('Enter at least one ingredient.')
-      return
+      return false
     }
 
     setSuggestLoading(true)
@@ -92,6 +78,7 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
         },
         body: JSON.stringify({
           ingredients: list,
+          ...(!justIngredients && meal.trim() ? { meal: meal.trim() } : {}),
           quickMeal,
           allergens: excludeAllergens ? allergens : [],
         }),
@@ -117,9 +104,10 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
         )
         setRecipe(null)
       }
-      navigate('/recipes')
+      return true
     } catch (err) {
       setSuggestError(friendlyError(err))
+      return false
     } finally {
       setSuggestLoading(false)
     }
@@ -130,17 +118,15 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
     setSuggestions([])
   }
 
+  const value = useMemo(
+    () => ({ suggestLoading, suggestError, submit, recipe, suggestions, clear }),
+    // submit and clear only call state setters, so they can be omitted
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [suggestLoading, suggestError, recipe, suggestions],
+  )
+
   return (
-    <RecipeContext.Provider
-      value={{
-        suggestLoading,
-        suggestError,
-        submit,
-        recipe,
-        suggestions,
-        clear,
-      }}
-    >
+    <RecipeContext.Provider value={value}>
       {children}
     </RecipeContext.Provider>
   )
