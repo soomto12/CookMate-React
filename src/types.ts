@@ -34,6 +34,14 @@ export interface ShoppingList {
   items: ShoppingListItem[]
 }
 
+/** Recipe data: nutrition summary per serving. */
+export interface RecipeNutrition {
+  calories?: number | null
+  proteinGrams?: number | null
+  carbsGrams?: number | null
+  fatGrams?: number | null
+}
+
 /** Recipe data: a full recipe returned by the API. */
 export interface Recipe {
   id: string
@@ -42,6 +50,9 @@ export interface Recipe {
   cuisine?: string | null
   servings?: number | null
   cookTimeMinutes?: number | null
+  prepTimeMinutes?: number | null
+  tags?: string[]
+  nutrition?: RecipeNutrition | null
   difficulty?: 'EASY' | 'MEDIUM' | 'HARD' | null
   imageUrl?: string | null
   imageCredit?: string | null
@@ -118,7 +129,6 @@ export interface GenerateInput {
   ingredients: string
   justIngredients: boolean
   quickMeal: boolean
-  allergens: string[]
   excludeAllergens: boolean
 }
 
@@ -139,4 +149,53 @@ export interface RecipeContextValue {
 export interface SavedRecipeState {
   recipe: Recipe | null
   suggestions: string[]
+}
+
+/** Popular recipes: one static card in the home page Popular Recipes grid. */
+export interface PopularRecipe {
+  name: string
+  tags: string
+  time: string
+  image: string
+}
+
+/** API response: raw /ingredient payload for one meal. */
+export interface IngredientResponse {
+  mealname?: string | null
+  mealName?: string | null
+  title?: string | null
+  image?: string | null
+  imageUrl?: string | null
+  description?: string | null
+  servings?: number | null
+  difficulty?: Recipe['difficulty']
+  prepTimeMinutes?: number | null
+  cookTimeMinutes?: number | null
+  ingredients?: unknown
+  error?: string
+  message?: string
+}
+
+/** Recipe modal: /ingredient data after normalising, ready to render. */
+export interface MealDetails {
+  name: string
+  image: string | null
+  description: string
+  ingredients: RecipeIngredient[]
+  servings: number | null
+  difficulty: Recipe['difficulty']
+  prepTimeMinutes: number | null
+  cookTimeMinutes: number | null
+}
+
+/** Component props: RecipeDetailsModal component. */
+export interface RecipeDetailsModalProps {
+  recipe: PopularRecipe
+  onClose: () => void
+}
+
+// Helper: renders one ingredient line as "Name (2 cups)".
+export const formatIngredient = ({ name, quantity, unit }: RecipeIngredient): string => {
+  const amount = [quantity, unit].filter((v) => v != null).join(' ')
+  return amount ? `${name} (${amount})` : name
 }

@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
-import { API_URL } from '../generateConstants'
+import { API_BASE } from '../generateConstants'
 import {
   getErrorMessage,
   type GenerateInput,
@@ -52,7 +52,6 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
     ingredients,
     justIngredients,
     quickMeal,
-    allergens,
     excludeAllergens,
   }: GenerateInput): Promise<boolean> => {
     const list = ingredients
@@ -70,7 +69,7 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
 
     try {
       const token = localStorage.getItem('cookmate_token')
-      const res = await fetch(`${API_URL}/${justIngredients ? 'suggest' : 'generate'}`, {
+      const res = await fetch(`${API_BASE}/${justIngredients ? 'suggest' : 'generate'}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -80,7 +79,7 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
           ingredients: list,
           ...(!justIngredients && meal.trim() ? { meal: meal.trim() } : {}),
           quickMeal,
-          allergens: excludeAllergens ? allergens : [],
+          excludeAllergens,
         }),
       })
 

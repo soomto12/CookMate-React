@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ALLERGENS_URL } from '../generateConstants'
 import { getErrorMessage } from '../types'
-
-const API_URL = 'http://localhost:3000/api/allergens'
 
 const ALLERGENS = [
   { name: 'Milk', icon: '🥛' },
@@ -77,7 +76,7 @@ function Allergens() {
 
     try {
       const token = localStorage.getItem('cookmate_token')
-      const res = await fetch(API_URL, {
+      const res = await fetch(ALLERGENS_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

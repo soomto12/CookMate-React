@@ -1,5 +1,8 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import Icon from './Icon'
+import RecipeDetailsModal from './RecipeDetailsModal'
+import type { PopularRecipe } from '../types'
 import friedRice from '../assets/Fried rice and peppered chicken.jpg'
 import bolognese from '../assets/Spaghetti Bolognaise _ Un Plat Réconfortant inoubliable pour les Yummy Foodies.jpg'
 import stirFry from '../assets/Easy Vegetable Stir Fry_ Step-by-Step Healthy Stir Fry Recipes - Dinnerecipes_com.jpg'
@@ -12,9 +15,11 @@ const icons = {
     'M12 3c1 3 4 5 4 9a4 4 0 01-8 0c0-1.5.5-2.5 1.2-3.4.3 1 .8 1.4 1.3 1.4C10.5 8 11 5.5 12 3z',
   clock: 'M12 7v5l3 2M12 3a9 9 0 100 18 9 9 0 000-18z',
   arrow: 'M5 12h14M13 6l6 6-6 6',
+  // Ingredients list — opens the recipe details modal
+  ingredients: 'M9 6h10M9 12h10M9 18h10M4.6 6h.01M4.6 12h.01M4.6 18h.01',
 }
 
-const popularRecipes = [
+const popularRecipes: PopularRecipe[] = [
   { name: 'Chicken Fried Rice', tags: 'Simple • Tasty', time: '25 min', image: friedRice },
   { name: 'Spaghetti Bolognese', tags: 'Classic • Healthy', time: '30 min', image: bolognese },
   { name: 'Vegetable Stir-Fry', tags: 'Fresh • Nutritious', time: '20 min', image: stirFry },
@@ -24,6 +29,8 @@ const popularRecipes = [
 ]
 
 function PopularRecipes() {
+  const [selected, setSelected] = useState<PopularRecipe | null>(null)
+
   return (
     <section aria-labelledby="popular-recipes" className="px-4 pb-8 sm:px-8 lg:px-10">
       <div className="flex items-center justify-between">
@@ -66,18 +73,23 @@ function PopularRecipes() {
                   </h3>
                   <p className="mt-0.5 truncate text-xs text-slate-500">{recipe.tags}</p>
                 </div>
-                <Link
-                  to="/recipes"
-                  aria-label={`View ${recipe.name}`}
+                <button
+                  type="button"
+                  onClick={() => setSelected(recipe)}
+                  aria-label={`See ingredients for ${recipe.name}`}
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-green-900 transition hover:bg-green-800 hover:text-white"
                 >
-                  <Icon d={icons.arrow} className="h-4 w-4" />
-                </Link>
+                  <Icon d={icons.ingredients} className="h-4 w-4" />
+                </button>
               </div>
             </article>
           </li>
         ))}
       </ul>
+
+      {selected && (
+        <RecipeDetailsModal recipe={selected} onClose={() => setSelected(null)} />
+      )}
     </section>
   )
 }

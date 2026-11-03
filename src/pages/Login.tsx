@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import FormComponent from '../components/FormComponent'
+import { AUTH_URL } from '../generateConstants'
 import type { AuthResponse, FormMode, FormValues } from '../types'
 import { getErrorMessage } from '../types'
 
-const API_BASE = 'http://localhost:3000/api/auth'
 
 function Login() {
   const navigate = useNavigate()
@@ -18,7 +18,7 @@ function Login() {
     const payload = mode === 'signup' ? { name, email, password } : { email, password }
 
     try {
-      const res = await fetch(`${API_BASE}/${mode}`, {
+      const res = await fetch(`${AUTH_URL}/${mode}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

@@ -34,7 +34,6 @@ function Generate() {
       ingredients,
       justIngredients,
       quickMeal,
-      allergens,
       excludeAllergens,
     })
     if (ok) navigate('/recipes')
