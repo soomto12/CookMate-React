@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { ALLERGENS_URL } from '../generateConstants'
+import { authFetch } from '../session'
 import { getErrorMessage } from '../types'
 
 export function useAllergens() {
@@ -11,11 +12,7 @@ export function useAllergens() {
     setLoading(true)
     setError('')
     try {
-      const token = localStorage.getItem('cookmate_token')
-      const res = await fetch(ALLERGENS_URL, {
-        signal,
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      })
+      const res = await authFetch(ALLERGENS_URL, { signal })
       const data: unknown = await res.json().catch(() => ({}))
 
       if (!res.ok) {

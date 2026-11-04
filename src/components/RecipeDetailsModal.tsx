@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import Icon from './Icon'
 import { INGREDIENT_URL } from '../generateConstants'
+import { authFetch, SessionExpiredError } from '../session'
 import logo from '../assets/Mealio Green Fork Logo.png'
 import {
   formatIngredient,
@@ -145,13 +146,9 @@ function RecipeDetailsModal({ recipe, onClose }: RecipeDetailsModalProps) {
       setError('')
       setUsingSample(false)
       try {
-        const token = localStorage.getItem('cookmate_token')
-        const res = await fetch(INGREDIENT_URL, {
+        const res = await authFetch(INGREDIENT_URL, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ meal: recipe.name }),
           signal,
         })
@@ -163,6 +160,12 @@ function RecipeDetailsModal({ recipe, onClose }: RecipeDetailsModalProps) {
         setDetails(normalise(data))
       } catch (err) {
         if (signal?.aborted) return
+        // The session is gone and the guard is already redirecting to /login,
+        // so don't swap in sample data on the way out.
+        if (err instanceof SessionExpiredError) {
+          setError(err.message)
+          return
+        }
         // TEMPORARY: fall back to sample data instead of an error panel, so the
         // design is reviewable before /ingredient exists.
         setDetails(sampleDetails(recipe.name, recipe.time))

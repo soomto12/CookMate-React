@@ -1,17 +1,15 @@
 import { Link, useNavigate } from 'react-router-dom'
+import { clearSession, readUser } from '../session'
 import type { CookMateUser, SiteHeaderProps } from '../types'
 
 function SiteHeader({ active }: SiteHeaderProps) {
   const navigate = useNavigate()
-  const user = JSON.parse(
-    localStorage.getItem('cookmate_user') || 'null',
-  ) as CookMateUser | null
+  const user = readUser<CookMateUser>()
   const initial = user?.name?.trim()?.[0]?.toUpperCase() || '?'
 
   const handleLogout = () => {
-    localStorage.removeItem('cookmate_token')
-    localStorage.removeItem('cookmate_user')
-    navigate('/login')
+    clearSession()
+    navigate('/login', { replace: true })
   }
 
   return (
@@ -31,7 +29,7 @@ function SiteHeader({ active }: SiteHeaderProps) {
               Home
             </Link>
             <Link
-              to="/dashboard"
+              to="/history"
               className={`transition ${active === 'history' ? 'text-amber-700' : 'hover:text-amber-700'}`}
             >
               Meal History

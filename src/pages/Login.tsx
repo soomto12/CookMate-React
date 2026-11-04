@@ -1,15 +1,22 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import FormComponent from '../components/FormComponent'
 import { AUTH_URL } from '../generateConstants'
+import { saveSession, SESSION_EXPIRED_MESSAGE } from '../session'
 import type { AuthResponse, FormMode, FormValues } from '../types'
 import { getErrorMessage } from '../types'
 
 
 function Login() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+
+  // Where RequireAuth sent them from, if a guarded page bounced them here,
+  // and whether it was because the server rejected their token.
+  const { from, expired } = (location.state as { from?: string; expired?: boolean } | null) ?? {}
+
+  const [error, setError] = useState(expired ? SESSION_EXPIRED_MESSAGE : '')
 
   const handleSubmit = async (mode: FormMode, { name, email, password }: FormValues) => {
     setLoading(true)
@@ -30,10 +37,9 @@ function Login() {
         throw new Error(data.error || data.message || `Request failed (${res.status})`)
       }
 
-      if (data.token) localStorage.setItem('cookmate_token', data.token)
-      if (data.user) localStorage.setItem('cookmate_user', JSON.stringify(data.user))
+      saveSession(data.token, data.user)
 
-      navigate(mode === 'signup' ? '/allergens' : '/app')
+      navigate(mode === 'signup' ? '/allergens' : (from ?? '/app'), { replace: true })
     } catch (err) {
       const message = getErrorMessage(err)
       setError(

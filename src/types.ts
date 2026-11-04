@@ -76,6 +76,8 @@ export interface ToggleProps {
   checked?: boolean
   onChange?: (checked: boolean) => void
   describedBy?: string
+  /** Names the switch when the visible label text sits outside the Toggle. */
+  ariaLabel?: string
 }
 
 // Helper: turns an unknown caught error into a message string.
@@ -198,4 +200,13 @@ export interface RecipeDetailsModalProps {
 export const formatIngredient = ({ name, quantity, unit }: RecipeIngredient): string => {
   const amount = [quantity, unit].filter((v) => v != null).join(' ')
   return amount ? `${name} (${amount})` : name
+}
+
+/** History page: one generated recipe in the user's history. */
+export interface HistoryEntry {
+  id: string
+  title: string
+  image: string
+  generatedAt: string
+  minutes: number
 }

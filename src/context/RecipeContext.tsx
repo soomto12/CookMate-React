@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { API_BASE } from '../generateConstants'
+import { authFetch } from '../session'
 import {
   getErrorMessage,
   type GenerateInput,
@@ -68,13 +69,9 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
     setSuggestError('')
 
     try {
-      const token = localStorage.getItem('cookmate_token')
-      const res = await fetch(`${API_BASE}/${justIngredients ? 'suggest' : 'generate'}`, {
+      const res = await authFetch(`${API_BASE}/${justIngredients ? 'suggest' : 'generate'}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ingredients: list,
           ...(!justIngredients && meal.trim() ? { meal: meal.trim() } : {}),

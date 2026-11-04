@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ALLERGENS_URL } from '../generateConstants'
+import { authFetch } from '../session'
 import { getErrorMessage } from '../types'
 
 const ALLERGENS = [
@@ -75,13 +76,9 @@ function Allergens() {
     setError('')
 
     try {
-      const token = localStorage.getItem('cookmate_token')
-      const res = await fetch(ALLERGENS_URL, {
+      const res = await authFetch(ALLERGENS_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ allergens: [...selected, ...custom] }),
       })
 

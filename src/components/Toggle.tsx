@@ -1,6 +1,14 @@
 import type { ToggleProps } from '../types'
 
-function Toggle({ name, label, defaultChecked, checked, onChange, describedBy }: ToggleProps) {
+function Toggle({
+  name,
+  label,
+  defaultChecked,
+  checked,
+  onChange,
+  describedBy,
+  ariaLabel,
+}: ToggleProps) {
   return (
     <label className="flex w-fit cursor-pointer items-center gap-3 text-sm text-slate-600">
       <input
@@ -11,6 +19,7 @@ function Toggle({ name, label, defaultChecked, checked, onChange, describedBy }:
         checked={checked}
         onChange={onChange && ((e) => onChange(e.target.checked))}
         aria-describedby={describedBy}
+        aria-label={ariaLabel}
         className="peer sr-only"
       />
       <span
