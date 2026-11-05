@@ -165,14 +165,19 @@ function Generate() {
                       </a>
                     </span>
                   ) : (
-                    allergens.map((name) => (
-                      <span
-                        key={name}
-                        className="rounded-full bg-green-700 px-3 py-1 text-sm font-medium text-white"
-                      >
-                        {name}
-                      </span>
-                    ))
+                    <>
+                      {allergens.map((name) => (
+                        <span
+                          key={name}
+                          className="rounded-full bg-green-700 px-3 py-1 text-sm font-medium text-white"
+                        >
+                          {name}
+                        </span>
+                      ))}
+                      <a href="/allergens" className="text-sm font-semibold text-green-800 hover:underline">
+                        Add more
+                      </a>
+                    </>
                   )}
                 </div>
                 <Toggle

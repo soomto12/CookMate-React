@@ -20,7 +20,8 @@ export function useAllergens() {
         throw new Error(body.error || body.message || `Request failed (${res.status})`)
       }
 
-      const list = Array.isArray(data) ? data : (data as { allergens?: unknown }).allergens
+      const body = data as { allergens?: unknown; foods?: unknown }
+      const list = Array.isArray(data) ? data : (body.foods ?? body.allergens)
       setAllergens(
         Array.isArray(list)
           ? list.map((a) => (typeof a === 'string' ? a : (a as { name: string }).name))
