@@ -1,73 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AppSidebar from '../components/AppSidebar'
 import Icon from '../components/Icon'
+import RecipeSkeleton from '../components/RecipeSkeleton'
 import { useRecipe } from '../context/RecipeContext'
-import { formatIngredient, type Recipe } from '../types'
+import { formatIngredient } from '../types'
+import { formatDifficulty, iconButtonClass, icons, itemKey } from '../recipesConstants'
 import heroFallback from '../assets/Fresh Grilled Chicken Power Bowl.png'
 import shoppingBasket from '../assets/Screenshot 2026-11-04 110842.png'
-
-const icons = {
-  menu: 'M4 6h16M4 12h16M4 18h16',
-  back: 'M19 12H5M11 6l-6 6 6 6',
-  bookmark: 'M7 4h10a1 1 0 011 1v15l-6-4-6 4V5a1 1 0 011-1z',
-  share:
-    'M18 8a3 3 0 100-6 3 3 0 000 6zM6 15a3 3 0 100-6 3 3 0 000 6zM18 22a3 3 0 100-6 3 3 0 000 6zM8.6 13.5l6.8 3.9M15.4 6.6L8.6 10.5',
-  clock: 'M12 7v5l3 2M12 3a9 9 0 100 18 9 9 0 000-18z',
-  cutlery: 'M7 3v4a2 2 0 004 0V3M9 9v12M17 3c-1.4 2-2 4-2 6h4c0-2-.6-4-2-6zM17 9v12',
-  pot: 'M4 11h16v6a3 3 0 01-3 3H7a3 3 0 01-3-3v-6zM2 11h20M8 7c0-1 1-1 1-2s-1-1-1-2M13 7c0-1 1-1 1-2s-1-1-1-2',
-  people:
-    'M16 19v-1a4 4 0 00-4-4H7a4 4 0 00-4 4v1M9.5 11a3.5 3.5 0 100-7 3.5 3.5 0 000 7M21 19v-1a4 4 0 00-3-3.9M16.5 4.2a4 4 0 010 7.6',
-  cart: 'M3 4h2l2.4 10.4a1 1 0 001 .6h8.2a1 1 0 001-.8L19 8H6M9 20h.01M17 20h.01',
-  info: 'M12 3a9 9 0 100 18 9 9 0 000-18zM12 8h.01M11 12h1v4h1',
-  check: 'M5.5 12.5l4 4 9-9',
-  chart: 'M5 20V10M12 20V4M19 20v-6M3 20h18',
-  chef: 'M7 14a4 4 0 01-1-7.9A5 5 0 0116 5a4 4 0 011 8.1V20H7v-6zM7 17h10',
-  heart: 'M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z',
-  sparkles:
-    'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z',
-}
-
-// Placeholder shown until a recipe is generated (data from the Mealio design).
-const SAMPLE_RECIPE: Recipe = {
-  id: 'sample-chicken-fried-rice',
-  title: 'Chicken Fried Rice',
-  description: 'A quick and delicious meal made with tender chicken, fragrant rice and fresh vegetables.',
-  tags: ['High Protein', 'Quick Meal'],
-  difficulty: 'EASY',
-  prepTimeMinutes: 10,
-  cookTimeMinutes: 15,
-  servings: 2,
-  ingredients: [
-    { name: 'Chicken breast', quantity: 200, unit: 'g' },
-    { name: 'Rice', quantity: 2, unit: 'cups' },
-    { name: 'Carrots', quantity: 1, unit: 'cup' },
-    { name: 'Green peas', quantity: 0.5, unit: 'cup' },
-    { name: 'Onions', quantity: 1, unit: 'medium' },
-    { name: 'Soy sauce', quantity: 2, unit: 'tbsp' },
-    { name: 'Cooking oil', quantity: null, unit: null },
-    { name: 'Salt & pepper', quantity: null, unit: null },
-  ],
-  steps: [
-    { order: 1, instruction: 'Cook the rice until fluffy, then set aside.' },
-    { order: 2, instruction: 'Heat oil in a pan, add diced chicken and stir-fry until golden brown.' },
-    { order: 3, instruction: 'Add onions, carrots and peas. Cook for 2–3 minutes.' },
-    {
-      order: 4,
-      instruction: 'Add the rice, soy sauce, and season to taste. Stir well and cook for another 2–3 minutes.',
-    },
-    { order: 5, instruction: 'Serve hot and enjoy!' },
-  ],
-  nutrition: { calories: 420, proteinGrams: 35, carbsGrams: 60, fatGrams: 10 },
-}
-
-const formatDifficulty = (difficulty: NonNullable<Recipe['difficulty']>) =>
-  difficulty.charAt(0) + difficulty.slice(1).toLowerCase()
-
-const itemKey = (item: { id?: string; name: string }) => item.id ?? item.name
-
-const iconButtonClass =
-  'flex h-10 w-10 items-center justify-center rounded-full text-green-900 transition hover:bg-emerald-50'
 
 function Recipes() {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -75,12 +15,19 @@ function Recipes() {
   const [favourite, setFavourite] = useState(false)
   const [checked, setChecked] = useState<string[]>([])
   const [inCart, setInCart] = useState<string[]>([])
-  const { recipe: generated, suggestions } = useRecipe()
+  const { recipe, suggestions, recipeLoading, recipeError, loadLatestRecipe } = useRecipe()
 
-  const recipe = generated ?? SAMPLE_RECIPE
-  const totalMinutes = (recipe.prepTimeMinutes ?? 0) + (recipe.cookTimeMinutes ?? 0)
-  const tags = [...(recipe.tags ?? []), ...(recipe.difficulty ? [formatDifficulty(recipe.difficulty)] : [])]
-  const nutrition = recipe.nutrition
+  useEffect(() => {
+    if (!recipe) loadLatestRecipe()
+    // only on mount: once a recipe is set (by this fetch or by Generate), we don't refetch
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const totalMinutes = recipe ? (recipe.prepTimeMinutes ?? 0) + (recipe.cookTimeMinutes ?? 0) : 0
+  const tags = recipe
+    ? [...(recipe.tags ?? []), ...(recipe.difficulty ? [formatDifficulty(recipe.difficulty)] : [])]
+    : []
+  const nutrition = recipe?.nutrition
   const nutritionParts = nutrition
     ? [
         nutrition.calories != null && `~${nutrition.calories} kcal`,
@@ -90,30 +37,32 @@ function Recipes() {
       ].filter(Boolean)
     : []
 
-  const stats = [
-    recipe.prepTimeMinutes != null && {
-      icon: icons.cutlery,
-      label: 'Prep Time',
-      value: `${recipe.prepTimeMinutes} min`,
-    },
-    recipe.cookTimeMinutes != null && {
-      icon: icons.pot,
-      label: 'Cook Time',
-      value: `${recipe.cookTimeMinutes} min`,
-    },
-    recipe.servings != null && {
-      icon: icons.people,
-      label: 'Servings',
-      value: `${recipe.servings} ${recipe.servings === 1 ? 'person' : 'people'}`,
-    },
-    recipe.cuisine ? { icon: icons.chef, label: 'Cuisine', value: recipe.cuisine } : false,
-  ].filter((stat): stat is { icon: string; label: string; value: string } => Boolean(stat))
+  const stats = !recipe
+    ? []
+    : [
+        recipe.prepTimeMinutes != null && {
+          icon: icons.cutlery,
+          label: 'Prep Time',
+          value: `${recipe.prepTimeMinutes} min`,
+        },
+        recipe.cookTimeMinutes != null && {
+          icon: icons.pot,
+          label: 'Cook Time',
+          value: `${recipe.cookTimeMinutes} min`,
+        },
+        recipe.servings != null && {
+          icon: icons.people,
+          label: 'Servings',
+          value: `${recipe.servings} ${recipe.servings === 1 ? 'person' : 'people'}`,
+        },
+        recipe.cuisine ? { icon: icons.chef, label: 'Cuisine', value: recipe.cuisine } : false,
+      ].filter((stat): stat is { icon: string; label: string; value: string } => Boolean(stat))
 
   const toggleIngredient = (key: string) =>
     setChecked((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]))
 
   // The API may attach a shopping list; otherwise shop the ingredient list.
-  const shoppingItems = recipe.shoppingLists?.[0]?.items ?? recipe.ingredients
+  const shoppingItems = recipe ? (recipe.shoppingLists?.[0]?.items ?? recipe.ingredients) : []
 
   const toggleCart = (key: string) =>
     setInCart((prev) => (prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]))
@@ -163,7 +112,7 @@ function Recipes() {
           </header>
 
           <main className="mt-4">
-            {!generated && suggestions.length > 0 && (
+            {!recipe && suggestions.length > 0 && (
               <section
                 aria-labelledby="suggestions-heading"
                 className="mb-5 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-emerald-100"
@@ -178,16 +127,50 @@ function Recipes() {
                 <ul className="mt-3 flex flex-wrap gap-2">
                   {suggestions.map((food) => (
                     <li
-                      key={food}
+                      key={food.name}
                       className="rounded-full bg-emerald-50 px-3.5 py-1.5 text-sm font-semibold text-green-800 ring-1 ring-emerald-100"
                     >
-                      {food}
+                      {food.name}
                     </li>
                   ))}
                 </ul>
               </section>
             )}
 
+            {!recipe && recipeLoading ? (
+              <RecipeSkeleton />
+            ) : !recipe && recipeError ? (
+              <section className="flex flex-col items-center gap-4 rounded-2xl bg-rose-50 px-6 py-16 text-center ring-1 ring-rose-100">
+                <Icon d={icons.chef} className="h-10 w-10 text-rose-500" />
+                <div>
+                  <h2 className="text-lg font-extrabold text-green-950">Couldn&rsquo;t load your recipe</h2>
+                  <p className="mt-1 text-sm text-slate-600">{recipeError}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => loadLatestRecipe()}
+                  className="rounded-xl bg-green-800 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-green-900/20 transition hover:bg-green-900"
+                >
+                  Try again
+                </button>
+              </section>
+            ) : !recipe ? (
+              <section className="flex flex-col items-center gap-4 rounded-2xl bg-emerald-50/60 px-6 py-16 text-center ring-1 ring-emerald-100">
+                <Icon d={icons.chef} className="h-10 w-10 text-green-700" />
+                <div>
+                  <h2 className="text-lg font-extrabold text-green-950">No recipe yet</h2>
+                  <p className="mt-1 text-sm text-slate-600">
+                    Generate a recipe from your ingredients to see it here.
+                  </p>
+                </div>
+                <Link
+                  to="/generate"
+                  className="rounded-xl bg-green-800 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-green-900/20 transition hover:bg-green-900"
+                >
+                  Generate a recipe
+                </Link>
+              </section>
+            ) : (
             <article aria-labelledby="recipe-title">
               <figure className="relative m-0 p-0">
                 <img
@@ -430,6 +413,7 @@ function Recipes() {
                 </button>
               </div>
             </article>
+            )}
           </main>
         </div>
       </div>

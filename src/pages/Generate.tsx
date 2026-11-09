@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
 import AppSidebar from '../components/AppSidebar'
 import Icon from '../components/Icon'
+import MealSuggestionModal from '../components/MealSuggestionModal'
 import Toggle from '../components/Toggle'
 import { useRecipe } from '../context/RecipeContext'
 import { useAllergens } from '../hooks/useAllergens'
@@ -25,7 +26,7 @@ function Generate() {
   const [justIngredients, setJustIngredients] = useState(false)
   const [excludeAllergens, setExcludeAllergens] = useState(false)
   const { allergens, loading: allergensLoading, error: allergensError } = useAllergens()
-  const { suggestLoading, suggestError, submit } = useRecipe()
+  const { suggestLoading, suggestError, submit, suggestions, clear } = useRecipe()
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -35,6 +36,23 @@ function Generate() {
       justIngredients,
       quickMeal,
       excludeAllergens,
+    })
+    // When the user only gave ingredients, let them pick from the suggestion
+    // popup instead of navigating straight to /recipes.
+    if (ok && !justIngredients) navigate('/recipes')
+  }
+
+  const handleGenerateSelected = async (input: {
+    meal: string
+    quickMeal: boolean
+    excludeAllergens: boolean
+  }) => {
+    const ok = await submit({
+      meal: input.meal,
+      ingredients,
+      justIngredients: false,
+      quickMeal: input.quickMeal,
+      excludeAllergens: input.excludeAllergens,
     })
     if (ok) navigate('/recipes')
   }
@@ -230,6 +248,17 @@ function Generate() {
           </aside>
         </main>
       </div>
+
+      {justIngredients && suggestions.length > 0 && (
+        <MealSuggestionModal
+          suggestions={suggestions}
+          quickMeal={quickMeal}
+          excludeAllergens={excludeAllergens}
+          loading={suggestLoading}
+          onClose={clear}
+          onGenerate={handleGenerateSelected}
+        />
+      )}
     </div>
   )
 }

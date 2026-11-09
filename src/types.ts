@@ -134,6 +134,14 @@ export interface GenerateInput {
   excludeAllergens: boolean
 }
 
+/** Meal suggestion: one entry returned by POST /recipes/suggest. */
+export interface MealSuggestion {
+  name: string
+  imageUrl: string | null
+  imageCredit: string | null
+  imageCreditUrl: string | null
+}
+
 /** Recipe context: the shape of the value RecipeContext provides. */
 export interface RecipeContextValue {
   // generate request
@@ -143,14 +151,13 @@ export interface RecipeContextValue {
 
   // results
   recipe: Recipe | null
-  suggestions: string[]
+  suggestions: MealSuggestion[]
   clear: () => void
-}
 
-/** Recipe context: what is saved to localStorage (cookmate_recipe). */
-export interface SavedRecipeState {
-  recipe: Recipe | null
-  suggestions: string[]
+  // latest recipe (GET /recipes/latest)
+  recipeLoading: boolean
+  recipeError: string
+  loadLatestRecipe: () => Promise<void>
 }
 
 /** Popular recipes: one static card in the home page Popular Recipes grid. */
@@ -194,6 +201,16 @@ export interface MealDetails {
 export interface RecipeDetailsModalProps {
   recipe: PopularRecipe
   onClose: () => void
+}
+
+/** Component props: MealSuggestionModal component. */
+export interface MealSuggestionModalProps {
+  suggestions: MealSuggestion[]
+  quickMeal: boolean
+  excludeAllergens: boolean
+  loading: boolean
+  onClose: () => void
+  onGenerate: (input: { meal: string; quickMeal: boolean; excludeAllergens: boolean }) => void
 }
 
 // Helper: renders one ingredient line as "Name (2 cups)".

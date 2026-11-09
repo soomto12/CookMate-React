@@ -1,28 +1,13 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useContext, useMemo, useState, type ReactNode } from 'react'
 import { API_BASE } from '../generateConstants'
 import { authFetch } from '../session'
 import {
   getErrorMessage,
   type GenerateInput,
+  type MealSuggestion,
   type Recipe,
   type RecipeContextValue,
-  type SavedRecipeState,
 } from '../types'
-
-const STORAGE_KEY = 'cookmate_recipe'
-
-const loadSaved = (): SavedRecipeState => {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (raw) {
-      const saved = JSON.parse(raw) as Partial<SavedRecipeState>
-      return { recipe: saved.recipe ?? null, suggestions: saved.suggestions ?? [] }
-    }
-  } catch {
-    // ignore corrupt or unavailable storage
-  }
-  return { recipe: null, suggestions: [] }
-}
 
 const friendlyError = (err: unknown): string => {
   const message = getErrorMessage(err)
@@ -37,16 +22,38 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
   const [suggestLoading, setSuggestLoading] = useState(false)
   const [suggestError, setSuggestError] = useState('')
 
-  const [recipe, setRecipe] = useState<Recipe | null>(() => loadSaved().recipe)
-  const [suggestions, setSuggestions] = useState<string[]>(() => loadSaved().suggestions)
+  const [recipe, setRecipe] = useState<Recipe | null>(null)
+  const [suggestions, setSuggestions] = useState<MealSuggestion[]>([])
 
-  useEffect(() => {
+  const [recipeLoading, setRecipeLoading] = useState(false)
+  const [recipeError, setRecipeError] = useState('')
+
+  const loadLatestRecipe = async (): Promise<void> => {
+    setRecipeLoading(true)
+    setRecipeError('')
+
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ recipe, suggestions }))
-    } catch {
-      // storage unavailable; state still works in memory
+      const res = await authFetch(`${API_BASE}/recipes/latest`)
+
+      if (res.status === 404) {
+        setRecipe(null)
+        return
+      }
+
+      const data: unknown = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        const body = data as { error?: string; message?: string }
+        throw new Error(body.error || body.message || `Request failed (${res.status})`)
+      }
+
+      setRecipe((data as { recipe?: Recipe }).recipe ?? null)
+    } catch (err) {
+      setRecipeError(friendlyError(err))
+    } finally {
+      setRecipeLoading(false)
     }
-  }, [recipe, suggestions])
+  }
 
   const submit = async ({
     meal,
@@ -69,14 +76,14 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
     setSuggestError('')
 
     try {
-      const res = await authFetch(`${API_BASE}/${justIngredients ? 'suggest' : 'generate'}`, {
+      const res = await authFetch(`${API_BASE}/recipes/${justIngredients ? 'suggest' : 'generate'}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ingredients: list,
-          ...(!justIngredients && meal.trim() ? { meal: meal.trim() } : {}),
-          quickMeal,
-          excludeAllergens,
+          availableIngredients: list,
+          ...(!justIngredients && meal.trim() ? { mealName: meal.trim() } : {}),
+          quickMealOnly: quickMeal,
+          excludeCommonAllergens: excludeAllergens,
         }),
       })
 
@@ -92,10 +99,20 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
         setRecipe(newRecipe)
         setSuggestions([])
       } else {
-        const items = Array.isArray(data) ? data : (data as { suggestions?: unknown }).suggestions
+        const body = data as { suggestions?: unknown; meals?: unknown }
+        const items = Array.isArray(data) ? data : body.suggestions ?? body.meals
         setSuggestions(
           Array.isArray(items)
-            ? items.map((f) => (typeof f === 'string' ? f : (f as { name: string }).name))
+            ? items.map((f): MealSuggestion =>
+                typeof f === 'string'
+                  ? { name: f, imageUrl: null, imageCredit: null, imageCreditUrl: null }
+                  : {
+                      name: (f as { name: string }).name,
+                      imageUrl: (f as { imageUrl?: string | null }).imageUrl ?? null,
+                      imageCredit: (f as { imageCredit?: string | null }).imageCredit ?? null,
+                      imageCreditUrl: (f as { imageCreditUrl?: string | null }).imageCreditUrl ?? null,
+                    },
+              )
             : [],
         )
         setRecipe(null)
@@ -115,10 +132,20 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
   }
 
   const value = useMemo(
-    () => ({ suggestLoading, suggestError, submit, recipe, suggestions, clear }),
-    // submit and clear only call state setters, so they can be omitted
+    () => ({
+      suggestLoading,
+      suggestError,
+      submit,
+      recipe,
+      suggestions,
+      clear,
+      recipeLoading,
+      recipeError,
+      loadLatestRecipe,
+    }),
+    // submit, clear and loadLatestRecipe only call state setters, so they can be omitted
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [suggestLoading, suggestError, recipe, suggestions],
+    [suggestLoading, suggestError, recipe, suggestions, recipeLoading, recipeError],
   )
 
   return (

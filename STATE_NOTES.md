@@ -13,8 +13,12 @@ State uses plain React `useState`, no store library.
   with the Recipes page. Holds `recipe`, `suggestions`, `suggestLoading`,
   `suggestError`, `submit(input)` and `clear`. `submit` takes all form values as
   an argument and returns `true` on success. It does not touch the router.
-  Results persist to `localStorage` under `cookmate_recipe`. The context value
-  is memoized.
+  Also holds `recipeLoading`, `recipeError` and `loadLatestRecipe()`, which GET
+  `/recipes/latest` from the backend. `recipe` is in-memory only (no
+  localStorage); `pages/Recipes.tsx` calls `loadLatestRecipe()` on mount when
+  there's no recipe yet (e.g. a direct visit or refresh), so the fetch is
+  skipped right after Generate sets the recipe optimistically. The context
+  value is memoized.
 
 ## When to reconsider
 
