@@ -43,7 +43,6 @@ const toIngredients = (raw: unknown): RecipeIngredient[] => {
 
 const normalise = (data: IngredientResponse): MealDetails => ({
   name: data.mealname || data.mealName || data.title || '',
-  image: data.image || data.imageUrl || null,
   description: data.description ?? '',
   ingredients: toIngredients(Array.isArray(data) ? data : data.ingredients),
   servings: data.servings ?? null,
@@ -56,8 +55,8 @@ const formatDifficulty = (difficulty: string) =>
   difficulty.charAt(0) + difficulty.slice(1).toLowerCase()
 
 // ---------------------------------------------------------------------------
-// TEMPORARY sample data, shown when /ingredient cannot be reached, so the modal
-// can be reviewed without the API. Delete this block once the route is live.
+// TEMPORARY sample data, shown when /ingredients cannot be reached, so the
+// modal can be reviewed without the API. Delete this block once the route is live.
 // ---------------------------------------------------------------------------
 const SAMPLE_INGREDIENTS: Record<string, RecipeIngredient[]> = {
   'Chicken Fried Rice': [
@@ -123,7 +122,6 @@ const SAMPLE_INGREDIENTS: Record<string, RecipeIngredient[]> = {
 
 const sampleDetails = (name: string, time: string): MealDetails => ({
   name,
-  image: null,
   description:
     'A simple and delicious meal made with tender chicken, fragrant rice and fresh vegetables.',
   ingredients: SAMPLE_INGREDIENTS[name] ?? SAMPLE_INGREDIENTS['Chicken Fried Rice'],
@@ -149,7 +147,7 @@ function RecipeDetailsModal({ recipe, onClose }: RecipeDetailsModalProps) {
         const res = await authFetch(INGREDIENT_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ meal: recipe.name }),
+          body: JSON.stringify({ mealName: recipe.name }),
           signal,
         })
 
@@ -201,8 +199,9 @@ function RecipeDetailsModal({ recipe, onClose }: RecipeDetailsModalProps) {
     }
   }, [onClose])
 
-  // Falls back to the home page card image whenever the API sends none.
-  const image = details?.image ?? recipe.image
+  // /ingredients returns only the ingredient list and meal name, so the
+  // modal always shows the home page card's image.
+  const image = recipe.image
   const title = details?.name || recipe.name
 
   const chips = [
@@ -296,7 +295,7 @@ function RecipeDetailsModal({ recipe, onClose }: RecipeDetailsModalProps) {
 
           {usingSample && (
             <p className="mt-2 text-xs font-semibold text-amber-600">
-              Showing sample ingredients &mdash; /ingredient is not reachable yet.
+              Showing sample ingredients &mdash; /ingredients is not reachable yet.
             </p>
           )}
 

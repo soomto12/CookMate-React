@@ -168,13 +168,11 @@ export interface PopularRecipe {
   image: string
 }
 
-/** API response: raw /ingredient payload for one meal. */
+/** API response: raw /ingredients payload for one meal. */
 export interface IngredientResponse {
   mealname?: string | null
   mealName?: string | null
   title?: string | null
-  image?: string | null
-  imageUrl?: string | null
   description?: string | null
   servings?: number | null
   difficulty?: Recipe['difficulty']
@@ -185,10 +183,9 @@ export interface IngredientResponse {
   message?: string
 }
 
-/** Recipe modal: /ingredient data after normalising, ready to render. */
+/** Recipe modal: /ingredients data after normalising, ready to render. */
 export interface MealDetails {
   name: string
-  image: string | null
   description: string
   ingredients: RecipeIngredient[]
   servings: number | null
