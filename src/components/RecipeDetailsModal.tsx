@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import Icon from './Icon'
+import Toggle from './Toggle'
+import { useRecipe } from '../context/RecipeContext'
 import { INGREDIENT_URL } from '../generateConstants'
 import { authFetch, SessionExpiredError } from '../session'
 import logo from '../assets/Mealio Green Fork Logo.png'
@@ -21,7 +23,8 @@ const icons = {
   leaf: 'M20 3C10 3 4 8.5 4 15c0 1.4.3 2.6.8 3.6C3.6 19.8 3 21 3 21M11 19c6 0 9-7 9-16',
   check: 'M5.5 12.5l4 4 9-9',
   pot: 'M4 11h16v6a3 3 0 01-3 3H7a3 3 0 01-3-3v-6zM2 11h20M8 7c0-1 1-1 1-2s-1-1-1-2M13 7c0-1 1-1 1-2s-1-1-1-2',
-  bookmark: 'M7 4h10a1 1 0 011 1v15l-6-4-6 4V5a1 1 0 011-1z',
+  bolt: 'M13 2L4 14h7l-1 8 9-12h-7l1-8z',
+  shield: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3zM8.5 12l2.5 2.5 4.5-5',
   arrow: 'M5 12h14M13 6l6 6-6 6',
 }
 
@@ -132,11 +135,15 @@ const sampleDetails = (name: string, time: string): MealDetails => ({
 })
 
 function RecipeDetailsModal({ recipe, onClose }: RecipeDetailsModalProps) {
+  const navigate = useNavigate()
+  const { submit, suggestLoading, suggestError } = useRecipe()
   const closeRef = useRef<HTMLButtonElement>(null)
   const [details, setDetails] = useState<MealDetails | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [usingSample, setUsingSample] = useState(false)
+  const [quickMeal, setQuickMeal] = useState(false)
+  const [excludeAllergens, setExcludeAllergens] = useState(false)
 
   const load = useCallback(
     async (signal?: AbortSignal) => {
@@ -198,6 +205,22 @@ function RecipeDetailsModal({ recipe, onClose }: RecipeDetailsModalProps) {
       document.body.style.overflow = previousOverflow
     }
   }, [onClose])
+
+  const handleCook = async () => {
+    if (!details) return
+    const ingredientNames = details.ingredients.map((ingredient) => ingredient.name).join(', ')
+    const ok = await submit({
+      meal: details.name || recipe.name,
+      ingredients: ingredientNames,
+      justIngredients: false,
+      quickMeal,
+      excludeAllergens,
+    })
+    if (ok) {
+      onClose()
+      navigate('/recipes')
+    }
+  }
 
   // /ingredients returns only the ingredient list and meal name, so the
   // modal always shows the home page card's image.
@@ -351,21 +374,52 @@ function RecipeDetailsModal({ recipe, onClose }: RecipeDetailsModalProps) {
             </ul>
           )}
 
+          <div className="mt-5 grid gap-3 rounded-2xl bg-emerald-50/70 p-3.5 ring-1 ring-emerald-100 sm:mt-6 sm:grid-cols-2 sm:p-4">
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-2">
+                <Icon d={icons.bolt} className="h-5 w-5 shrink-0 text-amber-500" />
+                <span className="text-sm font-bold text-green-950">Quick Meal</span>
+              </span>
+              <Toggle
+                name="modalQuickMeal"
+                label=""
+                ariaLabel="Quick meal"
+                checked={quickMeal}
+                onChange={setQuickMeal}
+              />
+            </div>
+
+            <div className="flex items-center justify-between gap-3">
+              <span className="flex items-center gap-2">
+                <Icon d={icons.shield} className="h-5 w-5 shrink-0 text-green-700" />
+                <span className="text-sm font-bold text-green-950">Exclude Allergens</span>
+              </span>
+              <Toggle
+                name="modalExcludeAllergens"
+                label=""
+                ariaLabel="Exclude allergens"
+                checked={excludeAllergens}
+                onChange={setExcludeAllergens}
+              />
+            </div>
+          </div>
+
+          {suggestError && (
+            <p role="alert" className="mt-3 text-sm text-red-700">
+              {suggestError}
+            </p>
+          )}
+
           <div className="mt-5 grid gap-2.5 sm:mt-6 sm:gap-3">
-            <Link
-              to="/recipes"
-              className="flex items-center justify-center gap-2 rounded-xl bg-green-700 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-900/20 transition hover:bg-green-800 sm:py-4 sm:text-base"
-            >
-              <Icon d={icons.pot} className="h-5 w-5" />
-              Cook This Meal
-              <Icon d={icons.arrow} className="h-4 w-4" />
-            </Link>
             <button
               type="button"
-              className="flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-white px-5 py-3 text-sm font-bold text-green-900 transition hover:bg-emerald-50 sm:py-4 sm:text-base"
+              onClick={() => void handleCook()}
+              disabled={!details || suggestLoading}
+              className="flex items-center justify-center gap-2 rounded-xl bg-green-700 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-green-900/20 transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60 sm:py-4 sm:text-base"
             >
-              <Icon d={icons.bookmark} className="h-5 w-5" />
-              Save to My Recipes
+              <Icon d={icons.pot} className="h-5 w-5" />
+              {suggestLoading ? 'Generating...' : 'Cook This Meal'}
+              <Icon d={icons.arrow} className="h-4 w-4" />
             </button>
           </div>
         </div>
