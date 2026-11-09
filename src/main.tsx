@@ -11,6 +11,7 @@ import Generate from './pages/Generate.tsx'
 import Recipes from './pages/Recipes.tsx'
 import Profile from './pages/Profile.tsx'
 import RequireAuth from './components/RequireAuth.tsx'
+import RedirectIfAuthed from './components/RedirectIfAuthed.tsx'
 import { RecipeProvider } from './context/RecipeContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
@@ -19,7 +20,9 @@ createRoot(document.getElementById('root')!).render(
       <RecipeProvider>
         <Routes>
           {/* Public */}
-          <Route path="/" element={<App />} />
+          <Route element={<RedirectIfAuthed />}>
+            <Route path="/" element={<App />} />
+          </Route>
           <Route path="/login" element={<Login />} />
 
           {/* Signed-in only */}
