@@ -3,14 +3,12 @@ import heroBowl from "../assets/Fresh Grilled Chicken Power Bowl.png";
 import { useState } from "react";
 import AppSidebar from "../components/AppSidebar";
 import Icon from "../components/Icon";
+import UserMenu from "../components/UserMenu";
 import QuickTips from "../components/QuickTips";
 import PopularRecipes from "../components/PopularRecipes";
 
 const homeIcons = {
-  search: "M11 4a7 7 0 100 14 7 7 0 000-14zM21 21l-4.5-4.5",
-  bell: "M6 9a6 6 0 1112 0c0 5 2 6 2 7H4c0-1 2-2 2-7zM10 20a2 2 0 004 0",
   menu: "M4 6h16M4 12h16M4 18h16",
-  sun: "M12 8a4 4 0 100 8 4 4 0 000-8zM12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4",
 };
 
 function Home() {
@@ -37,37 +35,9 @@ function Home() {
             >
               <Icon d={homeIcons.menu} className="h-5 w-5" />
             </button>
-            <form role="search" className="relative min-w-0 max-w-xl flex-1">
-              <label htmlFor="home-search" className="sr-only">
-                Search for recipes
-              </label>
-              <Icon
-                d={homeIcons.search}
-                className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-500"
-              />
-              <input
-                id="home-search"
-                type="search"
-                placeholder="Search for recipes..."
-                className="w-full rounded-2xl border border-emerald-50 bg-white py-3.5 pl-12 pr-4 text-sm text-stone-900 shadow-sm outline-none transition placeholder:text-slate-400 focus:border-green-600 focus:ring-2 focus:ring-green-600/20"
-              />
-            </form>
 
             <div className="ml-auto flex items-center gap-2 sm:gap-3">
-              <button
-                type="button"
-                aria-label="Notifications"
-                className="flex h-11 w-11 items-center justify-center rounded-full text-green-950 transition hover:bg-emerald-100/70"
-              >
-                <Icon d={homeIcons.bell} className="h-6 w-6" />
-              </button>
-              <button
-                type="button"
-                aria-label="Toggle theme"
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100/70 text-green-900 transition hover:bg-emerald-200/70"
-              >
-                <Icon d={homeIcons.sun} className="h-6 w-6" />
-              </button>
+              <UserMenu />
             </div>
           </div>
 

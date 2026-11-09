@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import AppSidebar from '../components/AppSidebar'
 import Icon from '../components/Icon'
+import UserMenu from '../components/UserMenu'
 import type { HistoryEntry } from '../types'
 import friedRice from '../assets/Fried rice and peppered chicken.jpg'
 import bolognese from '../assets/Spaghetti Bolognaise _ Un Plat Réconfortant inoubliable pour les Yummy Foodies.jpg'
@@ -80,16 +81,21 @@ function History() {
       <div className="min-w-0 flex-1 bg-white">
         <div className="px-4 py-4 sm:px-6 sm:py-5 lg:px-8">
           <header>
-            <button
-              type="button"
-              onClick={() => setMenuOpen(true)}
-              aria-label="Open menu"
-              aria-expanded={menuOpen}
-              aria-controls="sidebar"
-              className="mb-4 flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-green-800 text-green-800 transition hover:bg-green-50 lg:hidden"
-            >
-              <Icon d={icons.menu} className="h-5 w-5" />
-            </button>
+            <div className="mb-4 flex items-center justify-between">
+              <button
+                type="button"
+                onClick={() => setMenuOpen(true)}
+                aria-label="Open menu"
+                aria-expanded={menuOpen}
+                aria-controls="sidebar"
+                className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border-2 border-green-800 text-green-800 transition hover:bg-green-50 lg:hidden"
+              >
+                <Icon d={icons.menu} className="h-5 w-5" />
+              </button>
+              <div className="ml-auto">
+                <UserMenu />
+              </div>
+            </div>
 
             <h1 className="flex items-center gap-2.5 text-2xl font-extrabold tracking-tight text-green-950 sm:text-3xl">
               <Icon d={icons.history} className="h-7 w-7 shrink-0 text-green-700 sm:h-8 sm:w-8" />

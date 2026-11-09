@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import AppSidebar from '../components/AppSidebar'
 import Icon from '../components/Icon'
 import MealSuggestionModal from '../components/MealSuggestionModal'
+import UserMenu from '../components/UserMenu'
 import Toggle from '../components/Toggle'
 import { useRecipe } from '../context/RecipeContext'
 import { useAllergens } from '../hooks/useAllergens'
@@ -75,13 +76,9 @@ function Generate() {
             <span className="h-0.5 w-5 rounded bg-current" />
             <span className="h-0.5 w-5 rounded bg-current" />
           </button>
-          <button
-            type="button"
-            aria-label="Account menu"
-            className="ml-auto flex h-10 w-10 items-center justify-center rounded-full bg-green-900 font-bold text-white transition hover:bg-green-800"
-          >
-            S
-          </button>
+          <div className="ml-auto">
+            <UserMenu />
+          </div>
         </header>
 
         <main className="grid gap-x-10 gap-y-8 px-4 pb-12 sm:px-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:px-14">

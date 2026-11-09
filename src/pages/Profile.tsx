@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import AppSidebar from '../components/AppSidebar'
 import Icon from '../components/Icon'
 import Toggle from '../components/Toggle'
+import UserMenu from '../components/UserMenu'
 import { clearSession, readUser } from '../session'
 import type { CookMateUser } from '../types'
 
@@ -104,6 +105,7 @@ function Profile() {
               >
                 <Icon d={icons.sun} className="h-6 w-6" />
               </button>
+              <UserMenu />
             </div>
           </header>
 

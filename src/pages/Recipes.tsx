@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import AppSidebar from '../components/AppSidebar'
 import Icon from '../components/Icon'
 import RecipeSkeleton from '../components/RecipeSkeleton'
+import UserMenu from '../components/UserMenu'
 import { useRecipe } from '../context/RecipeContext'
 import { formatIngredient } from '../types'
 import { formatDifficulty, iconButtonClass, icons, itemKey } from '../recipesConstants'
@@ -107,6 +108,7 @@ function Recipes() {
                 <button type="button" aria-label="Share recipe" className={iconButtonClass}>
                   <Icon d={icons.share} className="h-5 w-5" />
                 </button>
+                <UserMenu />
               </div>
             </nav>
           </header>

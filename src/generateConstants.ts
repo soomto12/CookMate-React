@@ -1,7 +1,7 @@
 export const API_BASE = import.meta.env.VITE_API_BASE
 export const ALLERGENS_URL = `${API_BASE}/allergens`
 export const AUTH_URL = `${API_BASE}/auth`
-export const INGREDIENT_URL = `${API_BASE}/ingredients`
+export const INGREDIENT_URL = `${API_BASE}/recipes/ingredients`
 
 export const icons = {
   home: 'M3 11l9-8 9 8M5 10v10h14V10M10 20v-6h4v6',
