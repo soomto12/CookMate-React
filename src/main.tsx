@@ -1,39 +1,46 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './index.css'
 import App from './App.tsx'
 import Login from './pages/Login.tsx'
 import Home from './pages/Home.tsx'
-import Dashboard from './pages/Dashboard.tsx'
+import History from './pages/History.tsx'
 import Allergens from './pages/Allergens.tsx'
 import Generate from './pages/Generate.tsx'
 import Recipes from './pages/Recipes.tsx'
+import Recipe from './pages/Recipe.tsx'
+import Profile from './pages/Profile.tsx'
+import RequireAuth from './components/RequireAuth.tsx'
+import RedirectIfAuthed from './components/RedirectIfAuthed.tsx'
 import { RecipeProvider } from './context/RecipeContext.tsx'
-import { MealProvider } from './context/MealContext.tsx'
-import { IngredientProvider } from './context/IngredientContext.tsx'
-import { AllergenProvider } from './context/AllergenContext.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <BrowserRouter>
-      <MealProvider>
-      <IngredientProvider>
-      <AllergenProvider>
       <RecipeProvider>
-      <Routes>
-        <Route path="/" element={<App />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/app" element={<Home />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/allergens" element={<Allergens />} />
-        <Route path="/generate" element={<Generate />} />
-        <Route path="/recipes" element={<Recipes />} />
-      </Routes>
+        <Routes>
+          {/* Public */}
+          <Route element={<RedirectIfAuthed />}>
+            <Route path="/" element={<App />} />
+          </Route>
+          <Route path="/login" element={<Login />} />
+
+          {/* Signed-in only */}
+          <Route element={<RequireAuth />}>
+            <Route path="/app" element={<Home />} />
+            <Route path="/history" element={<History />} />
+            <Route path="/allergens" element={<Allergens />} />
+            <Route path="/generate" element={<Generate />} />
+            <Route path="/recipes" element={<Recipes />} />
+            <Route path="/recipes/view" element={<Recipe />} />
+            <Route path="/profile" element={<Profile />} />
+          </Route>
+
+          {/* Unknown URLs */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
       </RecipeProvider>
-      </AllergenProvider>
-      </IngredientProvider>
-      </MealProvider>
     </BrowserRouter>
   </StrictMode>,
 )

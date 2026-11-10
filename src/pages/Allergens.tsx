@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { ALLERGENS_URL } from '../generateConstants'
+import { authFetch } from '../session'
 import { getErrorMessage } from '../types'
-
-const API_URL = 'http://localhost:3000/api/allergens'
 
 const ALLERGENS = [
   { name: 'Milk', icon: '🥛' },
@@ -22,7 +22,7 @@ const ALLERGENS = [
   { name: 'Other', icon: '•••' },
 ]
 
-const STORAGE_KEY = 'cookmate_allergens'
+const STORAGE_KEY = 'mealio_allergens'
 
 function loadSaved(): { selected: string[]; custom: string[] } {
   try {
@@ -76,13 +76,9 @@ function Allergens() {
     setError('')
 
     try {
-      const token = localStorage.getItem('cookmate_token')
-      const res = await fetch(API_URL, {
+      const res = await authFetch(ALLERGENS_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ allergens: [...selected, ...custom] }),
       })
 

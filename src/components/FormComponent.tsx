@@ -1,23 +1,7 @@
 import { useState } from 'react'
 import type { ChangeEvent, SyntheticEvent } from 'react'
+import type { FormComponentProps, FormErrors, FormMode, FormValues } from '../types'
 import logo from '../assets/Mealio Green Fork Logo.png'
-
-export type FormMode = 'login' | 'signup'
-
-export interface FormValues {
-  name: string
-  email: string
-  password: string
-}
-
-type FormErrors = Partial<Record<'name' | 'email' | 'password', string>>
-
-interface FormComponentProps {
-  initialMode?: FormMode
-  loading?: boolean
-  error?: string
-  onSubmit?: (mode: FormMode, values: FormValues) => void | Promise<void>
-}
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 

@@ -1,11 +1,12 @@
-import { useEffect, useState, type FormEvent } from 'react'
+import { useState, type FormEvent } from 'react'
+import { useNavigate } from 'react-router-dom'
 import AppSidebar from '../components/AppSidebar'
 import Icon from '../components/Icon'
+import MealSuggestionModal from '../components/MealSuggestionModal'
+import UserMenu from '../components/UserMenu'
 import Toggle from '../components/Toggle'
 import { useRecipe } from '../context/RecipeContext'
-import { useMeal } from '../context/MealContext'
-import { useIngredients } from '../context/IngredientContext'
-import { useAllergens } from '../context/AllergenContext'
+import { useAllergens } from '../hooks/useAllergens'
 import {
   fieldsetClass,
   hintClass,
@@ -19,28 +20,42 @@ import {
 function Generate() {
   const current = '/generate'
   const [menuOpen, setMenuOpen] = useState(false)
-  const { meal, setMeal, quickMeal, setQuickMeal } = useMeal()
-  const { ingredients, setIngredients, justIngredients, setJustIngredients } = useIngredients()
-  const {
-    allergens,
-    allergensLoading,
-    allergensError,
-    loadAllergens,
-    excludeAllergens,
-    setExcludeAllergens,
-  } = useAllergens()
-  const { suggestLoading, suggestError, submit } = useRecipe()
+  const navigate = useNavigate()
+  const [meal, setMeal] = useState('')
+  const [quickMeal, setQuickMeal] = useState(false)
+  const [ingredients, setIngredients] = useState('')
+  const [justIngredients, setJustIngredients] = useState(false)
+  const [excludeAllergens, setExcludeAllergens] = useState(false)
+  const { allergens, loading: allergensLoading, error: allergensError } = useAllergens()
+  const { suggestLoading, suggestError, submit, suggestions, clear } = useRecipe()
 
-  useEffect(() => {
-    const controller = new AbortController()
-    loadAllergens(controller.signal)
-    return () => controller.abort()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    submit()
+    const ok = await submit({
+      meal,
+      ingredients,
+      justIngredients,
+      quickMeal,
+      excludeAllergens,
+    })
+    // When the user only gave ingredients, let them pick from the suggestion
+    // popup instead of navigating straight to /recipes.
+    if (ok && !justIngredients) navigate('/recipes')
+  }
+
+  const handleGenerateSelected = async (input: {
+    meal: string
+    quickMeal: boolean
+    excludeAllergens: boolean
+  }) => {
+    const ok = await submit({
+      meal: input.meal,
+      ingredients,
+      justIngredients: false,
+      quickMeal: input.quickMeal,
+      excludeAllergens: input.excludeAllergens,
+    })
+    if (ok) navigate('/recipes')
   }
 
   return (
@@ -61,13 +76,9 @@ function Generate() {
             <span className="h-0.5 w-5 rounded bg-current" />
             <span className="h-0.5 w-5 rounded bg-current" />
           </button>
-          <button
-            type="button"
-            aria-label="Account menu"
-            className="ml-auto flex h-10 w-10 items-center justify-center rounded-full bg-green-900 font-bold text-white transition hover:bg-green-800"
-          >
-            S
-          </button>
+          <div className="ml-auto">
+            <UserMenu />
+          </div>
         </header>
 
         <main className="grid gap-x-10 gap-y-8 px-4 pb-12 sm:px-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:px-14">
@@ -169,14 +180,19 @@ function Generate() {
                       </a>
                     </span>
                   ) : (
-                    allergens.map((name) => (
-                      <span
-                        key={name}
-                        className="rounded-full bg-green-700 px-3 py-1 text-sm font-medium text-white"
-                      >
-                        {name}
-                      </span>
-                    ))
+                    <>
+                      {allergens.map((name) => (
+                        <span
+                          key={name}
+                          className="rounded-full bg-green-700 px-3 py-1 text-sm font-medium text-white"
+                        >
+                          {name}
+                        </span>
+                      ))}
+                      <a href="/allergens" className="text-sm font-semibold text-green-800 hover:underline">
+                        Add more
+                      </a>
+                    </>
                   )}
                 </div>
                 <Toggle
@@ -229,6 +245,17 @@ function Generate() {
           </aside>
         </main>
       </div>
+
+      {justIngredients && suggestions.length > 0 && (
+        <MealSuggestionModal
+          suggestions={suggestions}
+          quickMeal={quickMeal}
+          excludeAllergens={excludeAllergens}
+          loading={suggestLoading}
+          onClose={clear}
+          onGenerate={handleGenerateSelected}
+        />
+      )}
     </div>
   )
 }

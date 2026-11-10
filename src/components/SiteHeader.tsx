@@ -1,21 +1,15 @@
 import { Link, useNavigate } from 'react-router-dom'
-import type { CookMateUser } from '../types'
-
-interface SiteHeaderProps {
-  active: 'home' | 'history'
-}
+import { clearSession, readUser } from '../session'
+import type { MealioUser, SiteHeaderProps } from '../types'
 
 function SiteHeader({ active }: SiteHeaderProps) {
   const navigate = useNavigate()
-  const user = JSON.parse(
-    localStorage.getItem('cookmate_user') || 'null',
-  ) as CookMateUser | null
+  const user = readUser<MealioUser>()
   const initial = user?.name?.trim()?.[0]?.toUpperCase() || '?'
 
   const handleLogout = () => {
-    localStorage.removeItem('cookmate_token')
-    localStorage.removeItem('cookmate_user')
-    navigate('/login')
+    clearSession()
+    navigate('/login', { replace: true })
   }
 
   return (
@@ -24,7 +18,7 @@ function SiteHeader({ active }: SiteHeaderProps) {
         <div className="flex items-center gap-6">
           <Link to="/app" className="inline-flex items-center gap-2 font-display text-2xl font-extrabold tracking-tight text-stone-900">
             <span className="text-3xl">👨‍🍳</span>
-            Cook<span className="text-amber-700">Mate</span>
+            Meal<span className="text-amber-700">io</span>
           </Link>
 
           <nav className="hidden items-center gap-6 text-sm font-medium text-stone-600 md:flex">
@@ -35,7 +29,7 @@ function SiteHeader({ active }: SiteHeaderProps) {
               Home
             </Link>
             <Link
-              to="/dashboard"
+              to="/history"
               className={`transition ${active === 'history' ? 'text-amber-700' : 'hover:text-amber-700'}`}
             >
               Meal History
