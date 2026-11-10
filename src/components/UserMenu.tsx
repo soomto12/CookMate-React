@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import Icon from './Icon'
 import { clearSession, readUser } from '../session'
-import type { CookMateUser } from '../types'
+import type { MealioUser } from '../types'
 
 const icons = {
   logout: 'M15 17l5-5-5-5M20 12H9M13 4H6a2 2 0 00-2 2v12a2 2 0 002 2h7',
@@ -13,7 +13,7 @@ function UserMenu() {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
-  const user = readUser<CookMateUser>()
+  const user = readUser<MealioUser>()
   const name = user?.name?.trim() || 'Guest'
   const initial = name[0]?.toUpperCase() || '?'
 

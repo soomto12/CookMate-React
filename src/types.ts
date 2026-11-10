@@ -1,5 +1,5 @@
-/** User: the logged-in user saved in localStorage (cookmate_user). */
-export interface CookMateUser {
+/** User: the logged-in user saved in localStorage (mealio_user). */
+export interface MealioUser {
   id?: string
   name: string
   email?: string
@@ -60,6 +60,7 @@ export interface Recipe {
   ingredients: RecipeIngredient[]
   steps: RecipeStep[]
   shoppingLists?: ShoppingList[]
+  createdAt?: string | null
 }
 
 /** Component props: Icon component. */
@@ -120,7 +121,7 @@ export interface FormComponentProps {
 /** API response: login/signup response from the auth endpoint. */
 export interface AuthResponse {
   token?: string
-  user?: CookMateUser
+  user?: MealioUser
   error?: string
   message?: string
 }
@@ -158,6 +159,12 @@ export interface RecipeContextValue {
   recipeLoading: boolean
   recipeError: string
   loadLatestRecipe: () => Promise<void>
+
+  // all recipes (GET /recipes)
+  recipes: Recipe[]
+  recipesLoading: boolean
+  recipesError: string
+  loadRecipes: () => Promise<void>
 }
 
 /** Popular recipes: one static card in the home page Popular Recipes grid. */
@@ -210,17 +217,24 @@ export interface MealSuggestionModalProps {
   onGenerate: (input: { meal: string; quickMeal: boolean; excludeAllergens: boolean }) => void
 }
 
+/** Component props: RecipeView component (shared by Recipes and the by-id recipe page). */
+export interface RecipeViewProps {
+  current: string
+  recipe: Recipe | null
+  loading: boolean
+  error: string
+  onRetry: () => void
+  backTo: string
+  backLabel: string
+  suggestions?: MealSuggestion[]
+  emptyTitle: string
+  emptyMessage: string
+  emptyActionLabel?: string
+  emptyActionTo?: string
+}
+
 // Helper: renders one ingredient line as "Name (2 cups)".
 export const formatIngredient = ({ name, quantity, unit }: RecipeIngredient): string => {
   const amount = [quantity, unit].filter((v) => v != null).join(' ')
   return amount ? `${name} (${amount})` : name
-}
-
-/** History page: one generated recipe in the user's history. */
-export interface HistoryEntry {
-  id: string
-  title: string
-  image: string
-  generatedAt: string
-  minutes: number
 }

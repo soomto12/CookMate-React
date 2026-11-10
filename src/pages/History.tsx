@@ -1,14 +1,10 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import AppSidebar from '../components/AppSidebar'
 import Icon from '../components/Icon'
 import UserMenu from '../components/UserMenu'
-import type { HistoryEntry } from '../types'
-import friedRice from '../assets/Fried rice and peppered chicken.jpg'
-import bolognese from '../assets/Spaghetti Bolognaise _ Un Plat Réconfortant inoubliable pour les Yummy Foodies.jpg'
-import chickenSalad from '../assets/Grilled Chicken Salad.jpg'
-import creamyPasta from '../assets/Creamy Pasta Dishes_ Rich and Satisfying Meals.jpg'
-import stirFry from '../assets/Easy Vegetable Stir Fry_ Step-by-Step Healthy Stir Fry Recipes - Dinnerecipes_com.jpg'
+import { useRecipe } from '../context/RecipeContext'
+import heroFallback from '../assets/Fresh Grilled Chicken Power Bowl.png'
 
 const icons = {
   menu: 'M4 6h16M4 12h16M4 18h16',
@@ -16,63 +12,26 @@ const icons = {
   calendar:
     'M7 3v4M17 3v4M4 9.5h16M5 5h14a1 1 0 011 1v13a1 1 0 01-1 1H5a1 1 0 01-1-1V6a1 1 0 011-1z',
   dots: 'M12 6h.01M12 12h.01M12 18h.01',
-  trash: 'M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2M6 7l1 13a1 1 0 001 1h8a1 1 0 001-1l1-13M10 11v6M14 11v6',
+  chef: 'M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z',
   sparkles:
     'M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z',
   arrow: 'M5 12h14M13 6l6 6-6 6',
 }
 
-// TEMPORARY sample history, shown until the history endpoint exists.
-const SAMPLE_HISTORY: HistoryEntry[] = [
-  {
-    id: 'h1',
-    title: 'Chicken Fried Rice',
-    image: friedRice,
-    generatedAt: '2026-11-02',
-    minutes: 25,
-  },
-  {
-    id: 'h2',
-    title: 'Spaghetti Bolognese',
-    image: bolognese,
-    generatedAt: '2026-11-01',
-    minutes: 30,
-  },
-  {
-    id: 'h3',
-    title: 'Grilled Chicken Salad',
-    image: chickenSalad,
-    generatedAt: '2026-10-31',
-    minutes: 20,
-  },
-  {
-    id: 'h4',
-    title: 'Creamy Pasta',
-    image: creamyPasta,
-    generatedAt: '2026-10-30',
-    minutes: 25,
-  },
-  {
-    id: 'h5',
-    title: 'Vegetable Stir-Fry',
-    image: stirFry,
-    generatedAt: '2026-10-29',
-    minutes: 20,
-  },
-]
-
-const formatDate = (iso: string) =>
-  new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+const formatDate = (iso?: string | null) =>
+  iso
+    ? new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : null
 
 function History() {
   const [menuOpen, setMenuOpen] = useState(false)
-  const [entries, setEntries] = useState<HistoryEntry[]>(SAMPLE_HISTORY)
   const [openRow, setOpenRow] = useState<string | null>(null)
+  const { recipes, recipesLoading, recipesError, loadRecipes } = useRecipe()
 
-  const remove = (id: string) => {
-    setEntries((prev) => prev.filter((entry) => entry.id !== id))
-    setOpenRow(null)
-  }
+  useEffect(() => {
+    loadRecipes()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="flex min-h-screen font-jakarta">
@@ -107,7 +66,37 @@ function History() {
           </header>
 
           <main className="mt-6">
-            {entries.length === 0 ? (
+            {recipesLoading ? (
+              <ul aria-hidden="true" className="grid animate-pulse gap-3">
+                {[1, 2, 3, 4].map((i) => (
+                  <li
+                    key={i}
+                    className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-emerald-100 sm:gap-4"
+                  >
+                    <div className="h-16 w-16 shrink-0 rounded-xl bg-emerald-100 sm:h-20 sm:w-24" />
+                    <div className="min-w-0 flex-1">
+                      <div className="h-4 w-2/3 rounded-md bg-emerald-100" />
+                      <div className="mt-2 h-3 w-1/3 rounded-md bg-emerald-100" />
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            ) : recipesError ? (
+              <div className="rounded-2xl bg-rose-50 px-6 py-12 text-center ring-1 ring-rose-100">
+                <Icon d={icons.chef} className="mx-auto h-10 w-10 text-rose-500" />
+                <h2 className="mt-3 text-lg font-extrabold text-green-950">
+                  Couldn&rsquo;t load your history
+                </h2>
+                <p className="mx-auto mt-1.5 max-w-sm text-sm text-slate-600">{recipesError}</p>
+                <button
+                  type="button"
+                  onClick={() => loadRecipes()}
+                  className="mt-5 rounded-xl bg-green-800 px-5 py-2.5 text-sm font-bold text-white shadow-md shadow-green-900/20 transition hover:bg-green-900"
+                >
+                  Try again
+                </button>
+              </div>
+            ) : recipes.length === 0 ? (
               <div className="rounded-2xl bg-emerald-50/60 px-6 py-12 text-center ring-1 ring-emerald-100">
                 <Icon
                   d={icons.sparkles}
@@ -126,15 +115,17 @@ function History() {
                 </Link>
               </div>
             ) : (
-              <>
-                <ul className="grid gap-3">
-                  {entries.map((entry) => (
+              <ul className="grid gap-3">
+                {recipes.map((entry) => {
+                  const minutes = (entry.prepTimeMinutes ?? 0) + (entry.cookTimeMinutes ?? 0)
+                  const date = formatDate(entry.createdAt)
+                  return (
                     <li
                       key={entry.id}
                       className="flex items-center gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-emerald-100 transition hover:shadow-md sm:gap-4"
                     >
                       <img
-                        src={entry.image}
+                        src={entry.imageUrl || heroFallback}
                         alt={entry.title}
                         className="h-16 w-16 shrink-0 rounded-xl object-cover sm:h-20 sm:w-24"
                       />
@@ -143,16 +134,20 @@ function History() {
                         <h2 className="truncate text-sm font-extrabold text-green-950 sm:text-lg">
                           {entry.title}
                         </h2>
-                        <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500 sm:text-sm">
-                          <Icon d={icons.calendar} className="h-4 w-4 shrink-0" />
-                          <span className="truncate">
-                            {formatDate(entry.generatedAt)} &bull; {entry.minutes} mins
-                          </span>
-                        </p>
+                        {(date || minutes > 0) && (
+                          <p className="mt-1 flex items-center gap-1.5 text-xs text-slate-500 sm:text-sm">
+                            <Icon d={icons.calendar} className="h-4 w-4 shrink-0" />
+                            <span className="truncate">
+                              {[date, minutes > 0 ? `${minutes} mins` : null]
+                                .filter(Boolean)
+                                .join(' • ')}
+                            </span>
+                          </p>
+                        )}
                       </div>
 
                       <Link
-                        to="/recipes"
+                        to={`/recipes/view?id=${entry.id}`}
                         className="shrink-0 rounded-full bg-emerald-50 px-3 py-2 text-xs font-bold text-green-800 ring-1 ring-emerald-100 transition hover:bg-emerald-100 sm:px-5 sm:text-sm"
                       >
                         View Recipe
@@ -179,35 +174,19 @@ function History() {
                             />
                             <div className="absolute right-0 top-10 z-20 w-48 overflow-hidden rounded-xl bg-white p-1 shadow-xl ring-1 ring-emerald-100">
                               <Link
-                                to="/recipes"
+                                to={`/recipes/view?id=${entry.id}`}
                                 className="block rounded-lg px-3 py-2.5 text-sm font-semibold text-green-950 transition hover:bg-emerald-50"
                               >
                                 View recipe
                               </Link>
-                              <button
-                                type="button"
-                                onClick={() => remove(entry.id)}
-                                className="block w-full rounded-lg px-3 py-2.5 text-left text-sm font-semibold text-rose-600 transition hover:bg-rose-50"
-                              >
-                                Remove from history
-                              </button>
                             </div>
                           </>
                         )}
                       </div>
                     </li>
-                  ))}
-                </ul>
-
-                <button
-                  type="button"
-                  onClick={() => setEntries([])}
-                  className="mt-5 flex w-full items-center justify-center gap-2.5 rounded-2xl bg-emerald-50 px-6 py-4 text-sm font-bold text-green-800 ring-1 ring-emerald-100 transition hover:bg-emerald-100 sm:text-base"
-                >
-                  <Icon d={icons.trash} className="h-5 w-5" />
-                  Clear History
-                </button>
-              </>
+                  )
+                })}
+              </ul>
             )}
           </main>
         </div>

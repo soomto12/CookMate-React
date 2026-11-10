@@ -1,10 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { clearSession, readUser } from '../session'
-import type { CookMateUser, SiteHeaderProps } from '../types'
+import type { MealioUser, SiteHeaderProps } from '../types'
 
 function SiteHeader({ active }: SiteHeaderProps) {
   const navigate = useNavigate()
-  const user = readUser<CookMateUser>()
+  const user = readUser<MealioUser>()
   const initial = user?.name?.trim()?.[0]?.toUpperCase() || '?'
 
   const handleLogout = () => {
@@ -18,7 +18,7 @@ function SiteHeader({ active }: SiteHeaderProps) {
         <div className="flex items-center gap-6">
           <Link to="/app" className="inline-flex items-center gap-2 font-display text-2xl font-extrabold tracking-tight text-stone-900">
             <span className="text-3xl">👨‍🍳</span>
-            Cook<span className="text-amber-700">Mate</span>
+            Meal<span className="text-amber-700">io</span>
           </Link>
 
           <nav className="hidden items-center gap-6 text-sm font-medium text-stone-600 md:flex">

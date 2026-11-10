@@ -7,8 +7,8 @@
  * guarded page that can no longer load anything.
  */
 
-const TOKEN_KEY = 'cookmate_token'
-const USER_KEY = 'cookmate_user'
+const TOKEN_KEY = 'mealio_token'
+const USER_KEY = 'mealio_user'
 
 /** Message shown on the login screen after an expired session. */
 export const SESSION_EXPIRED_MESSAGE = 'Your session expired. Please sign in again.'

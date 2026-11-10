@@ -22,7 +22,7 @@ const ALLERGENS = [
   { name: 'Other', icon: '•••' },
 ]
 
-const STORAGE_KEY = 'cookmate_allergens'
+const STORAGE_KEY = 'mealio_allergens'
 
 function loadSaved(): { selected: string[]; custom: string[] } {
   try {

@@ -5,7 +5,7 @@ import Icon from '../components/Icon'
 import Toggle from '../components/Toggle'
 import UserMenu from '../components/UserMenu'
 import { clearSession, readUser } from '../session'
-import type { CookMateUser } from '../types'
+import type { MealioUser } from '../types'
 
 const icons = {
   menu: 'M4 6h16M4 12h16M4 18h16',
@@ -46,7 +46,7 @@ function Profile() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [notifications, setNotifications] = useState(true)
 
-  const user = readUser<CookMateUser>()
+  const user = readUser<MealioUser>()
   const name = user?.name?.trim() || 'Guest'
   const email = user?.email?.trim() || 'Not signed in'
   const initial = name[0]?.toUpperCase() || '?'

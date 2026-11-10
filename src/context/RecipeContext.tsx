@@ -28,6 +28,32 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
   const [recipeLoading, setRecipeLoading] = useState(false)
   const [recipeError, setRecipeError] = useState('')
 
+  const [recipes, setRecipes] = useState<Recipe[]>([])
+  const [recipesLoading, setRecipesLoading] = useState(false)
+  const [recipesError, setRecipesError] = useState('')
+
+  const loadRecipes = async (): Promise<void> => {
+    setRecipesLoading(true)
+    setRecipesError('')
+
+    try {
+      const res = await authFetch(`${API_BASE}/recipes`)
+      const data: unknown = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        const body = data as { error?: string; message?: string }
+        throw new Error(body.error || body.message || `Request failed (${res.status})`)
+      }
+
+      const list = Array.isArray(data) ? data : (data as { recipes?: Recipe[] }).recipes
+      setRecipes(Array.isArray(list) ? list : [])
+    } catch (err) {
+      setRecipesError(friendlyError(err))
+    } finally {
+      setRecipesLoading(false)
+    }
+  }
+
   const loadLatestRecipe = async (): Promise<void> => {
     setRecipeLoading(true)
     setRecipeError('')
@@ -67,7 +93,7 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
       .map((i) => i.trim())
       .filter(Boolean)
 
-    if (list.length === 0) {
+    if (list.length === 0 && justIngredients) {
       setSuggestError('Enter at least one ingredient.')
       return false
     }
@@ -142,10 +168,24 @@ export function RecipeProvider({ children }: { children: ReactNode }) {
       recipeLoading,
       recipeError,
       loadLatestRecipe,
+      recipes,
+      recipesLoading,
+      recipesError,
+      loadRecipes,
     }),
-    // submit, clear and loadLatestRecipe only call state setters, so they can be omitted
+    // submit, clear, loadLatestRecipe and loadRecipes only call state setters, so they can be omitted
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [suggestLoading, suggestError, recipe, suggestions, recipeLoading, recipeError],
+    [
+      suggestLoading,
+      suggestError,
+      recipe,
+      suggestions,
+      recipeLoading,
+      recipeError,
+      recipes,
+      recipesLoading,
+      recipesError,
+    ],
   )
 
   return (

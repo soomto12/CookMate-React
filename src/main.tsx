@@ -9,6 +9,7 @@ import History from './pages/History.tsx'
 import Allergens from './pages/Allergens.tsx'
 import Generate from './pages/Generate.tsx'
 import Recipes from './pages/Recipes.tsx'
+import Recipe from './pages/Recipe.tsx'
 import Profile from './pages/Profile.tsx'
 import RequireAuth from './components/RequireAuth.tsx'
 import RedirectIfAuthed from './components/RedirectIfAuthed.tsx'
@@ -32,6 +33,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/allergens" element={<Allergens />} />
             <Route path="/generate" element={<Generate />} />
             <Route path="/recipes" element={<Recipes />} />
+            <Route path="/recipes/view" element={<Recipe />} />
             <Route path="/profile" element={<Profile />} />
           </Route>
 
