@@ -44,7 +44,7 @@ function Login() {
       const message = getErrorMessage(err)
       setError(
         message === 'Failed to fetch'
-          ? 'Could not reach the server. Is it running on localhost:3000?'
+          ? 'Could not reach the server. Please try again later.'
           : message,
       )
     } finally {
