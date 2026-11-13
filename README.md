@@ -18,7 +18,8 @@ backend API.
 - **Read-aloud instructions**: steps are narrated with the browser's Web Speech API,
   with play, pause, resume and stop controls, and the current step is highlighted.
 - **History**: browse and reopen previously generated recipes.
-- **Accounts**: sign in, with protected app pages and an account menu.
+- **Accounts**: sign up or sign in, with protected app pages and an account menu.
+  New accounts go straight to allergen setup.
 
 ## Tech stack
 
@@ -33,7 +34,7 @@ backend API.
 ### Prerequisites
 
 - Node.js 20 or later
-- A running Mealio backend API (by default on `http://localhost:3000`)
+- A running Mealio backend API (see [Backend API](#backend-api))
 
 ### Setup
 
@@ -48,6 +49,9 @@ Create a `.env` file in the project root that points at the backend:
 ```env
 VITE_API_BASE=http://localhost:3000
 ```
+
+`VITE_API_BASE` is required. The app has no fallback, so requests fail if it isn't
+set. Vite reads it at startup, so restart the dev server after changing it.
 
 Then start the dev server:
 
@@ -80,6 +84,35 @@ npm run dev
 | `/profile`           | Profile                                   |
 | `/profile/allergens` | Manage saved allergens                    |
 
+## Backend API
+
+All paths are relative to `VITE_API_BASE`. Every request except sign-up and login
+sends `Authorization: Bearer <token>`.
+
+| Method   | Path                   | Used for                                        |
+| -------- | ---------------------- | ----------------------------------------------- |
+| `POST`   | `/auth/signup`         | Create an account (`name`, `email`, `password`) |
+| `POST`   | `/auth/login`          | Sign in (`email`, `password`)                   |
+| `GET`    | `/recipes`             | Recipe history                                  |
+| `GET`    | `/recipes/latest`      | Most recently generated recipe                  |
+| `GET`    | `/recipes/find?id=…`   | A single recipe by id                           |
+| `POST`   | `/recipes/generate`    | Generate a recipe from a dish name              |
+| `POST`   | `/recipes/suggest`     | Suggest meals from ingredients you have         |
+| `POST`   | `/recipes/ingredients` | Fetch ingredients for a suggested meal          |
+| `GET`    | `/allergens`           | List saved allergens                            |
+| `POST`   | `/allergens`           | Save allergens                                  |
+| `DELETE` | `/allergens/:key`      | Remove an allergen                              |
+
+## Authentication
+
+After login or sign-up, the token and user are stored in `localStorage`
+(`mealio_token`, `mealio_user`). All API calls go through `authFetch` in
+[`src/session.ts`](src/session.ts), which attaches the token. If the server responds
+with `401` or `403`, the session is cleared and the user is sent back to `/login`
+with a "session expired" message. The route guards (`RequireAuth`,
+`RedirectIfAuthed`) only control what the UI shows. The backend is what actually
+enforces access.
+
 ## Project structure
 
 ```
@@ -89,6 +122,8 @@ src/
 ├── hooks/        useAllergens, useRecipeById, useStepNarrator
 ├── pages/        Route-level pages
 ├── assets/       Images and logo
+├── session.ts    Token storage and authFetch
+├── types.ts      Shared types
 └── main.tsx      App entry and routes
 ```
 
