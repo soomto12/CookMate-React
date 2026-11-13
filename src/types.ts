@@ -92,11 +92,6 @@ export interface AppSidebarProps {
   onClose: () => void
 }
 
-/** Component props: SiteHeader component. */
-export interface SiteHeaderProps {
-  active: 'home' | 'history'
-}
-
 /** Auth form: which tab the login/signup form is showing. */
 export type FormMode = 'login' | 'signup'
 

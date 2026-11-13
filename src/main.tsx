@@ -11,6 +11,7 @@ import Generate from './pages/Generate.tsx'
 import Recipes from './pages/Recipes.tsx'
 import Recipe from './pages/Recipe.tsx'
 import Profile from './pages/Profile.tsx'
+import ManageAllergens from './pages/ManageAllergens.tsx'
 import RequireAuth from './components/RequireAuth.tsx'
 import RedirectIfAuthed from './components/RedirectIfAuthed.tsx'
 import { RecipeProvider } from './context/RecipeContext.tsx'
@@ -35,6 +36,7 @@ createRoot(document.getElementById('root')!).render(
             <Route path="/recipes" element={<Recipes />} />
             <Route path="/recipes/view" element={<Recipe />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/profile/allergens" element={<ManageAllergens />} />
           </Route>
 
           {/* Unknown URLs */}
